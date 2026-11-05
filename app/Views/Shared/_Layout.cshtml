@@ -1,0 +1,64 @@
+@functions { int Nivel(string m) => int.TryParse(User.FindFirst("perm:" + m)?.Value, out var n) ? n : 0; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] – CONTROLEX</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="app">
+<aside class="sidebar">
+    <div class="brand"><span class="brand-mark">C</span><span>CONTROLEX</span></div>
+    <nav>
+        <a class="nav-item" asp-controller="Home" asp-action="Index">Inicio</a>
+
+        @if (Nivel("PROYECTOS") > 0)
+        {
+            <div class="nav-group">Proyectos</div>
+            @if (Nivel("PROYECTOS") == 2) { <a class="nav-sub" href="#">Crear proyecto</a> }
+            <a class="nav-sub" href="#">Ver proyectos</a>
+        }
+        @if (Nivel("TAREAS") > 0)
+        {
+            <div class="nav-group">Tareas</div>
+            @if (Nivel("TAREAS") == 2) { <a class="nav-sub" href="#">Crear tarea</a> }
+            <a class="nav-sub" href="#">Ver tareas</a>
+        }
+        @if (Nivel("REP_RENTABILIDAD") > 0 || Nivel("REP_TAREAS") > 0)
+        {
+            <div class="nav-group">Reportes</div>
+            @if (Nivel("REP_RENTABILIDAD") > 0) { <a class="nav-sub" href="#">Rentabilidad de proyectos</a> }
+            @if (Nivel("REP_TAREAS") > 0) { <a class="nav-sub" href="#">Eficiencia y pendientes</a> }
+        }
+        <div class="nav-group">Seguridad</div>
+        @if (Nivel("ROLES_PERMISOS") > 0) { <a class="nav-sub" href="#">Roles y permisos</a> }
+        <a class="nav-sub" href="#">Cambiar contraseña</a>
+        @if (Nivel("BITACORAS") > 0)
+        {
+            <div class="nav-group">Bitácoras</div>
+            <a class="nav-sub" href="#">Ingresos de usuario</a>
+            <a class="nav-sub" href="#">Movimientos de usuario</a>
+        }
+        @if (Nivel("USUARIOS") > 0 || Nivel("CLIENTES") > 0)
+        {
+            <div class="nav-group">Catálogos</div>
+            @if (Nivel("USUARIOS") > 0) { <a class="nav-sub" href="#">Usuarios</a> }
+            @if (Nivel("CLIENTES") > 0) { <a class="nav-sub" href="#">Clientes</a> }
+        }
+        <a class="nav-item" href="#">Acerca de</a>
+        <a class="nav-item" href="#">Ayuda</a>
+    </nav>
+    <form asp-controller="Account" asp-action="Logout" method="post" class="logout">
+        <button type="submit" class="nav-item">Cerrar sesión</button>
+    </form>
+</aside>
+<div class="main">
+    <header class="topbar">
+        <h1>@ViewData["Title"]</h1>
+        <div class="user"><strong>@User.FindFirst("nombre_completo")?.Value</strong><span>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></div>
+    </header>
+    <section class="content">@RenderBody()</section>
+</div>
+</body>
+</html>

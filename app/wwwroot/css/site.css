@@ -1,0 +1,32 @@
+/* Paleta tomada de la Ficha Empresarial de WallRed. Reemplazar por la de los prototipos aprobados (Entregable 4, 4.3.3). */
+:root{--navy:#0F172A;--blue:#2563EB;--blue-d:#1D4ED8;--bg:#F1F5F9;--line:#E2E8F0;--text:#1E293B;--muted:#64748B}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,"Segoe UI",Arial,sans-serif;color:var(--text);background:var(--bg);font-size:14px}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:17px;padding:0 8px 22px}
+.brand.dark{color:var(--navy);padding:0 0 18px}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center}
+.app{display:flex;min-height:100vh}
+.sidebar{width:240px;flex-shrink:0;background:var(--navy);padding:24px 14px;display:flex;flex-direction:column}
+.sidebar nav{flex:1}
+.nav-item,.nav-sub{display:block;color:#E2E8F0;text-decoration:none;border-radius:8px;font-size:13px;background:none;border:0;width:100%;text-align:left;font-family:inherit;cursor:pointer}
+.nav-item{padding:9px 12px;font-weight:500}.nav-sub{padding:6px 12px 6px 26px;font-size:12px;color:#CBD5E1}
+.nav-item:hover,.nav-sub:hover{background:rgba(255,255,255,.08)}
+.nav-group{padding:12px 12px 4px;color:#94A3B8;font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+.logout{margin:0}
+.main{flex:1;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid var(--line);padding:16px 32px;display:flex;justify-content:space-between;align-items:center}
+.topbar h1{margin:0;font-size:22px;color:var(--navy)}
+.user{text-align:right;display:flex;flex-direction:column}.user span{font-size:12px;color:var(--muted)}
+.content{padding:24px 32px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px}
+.login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--navy)}
+.login-card{background:#fff;border-radius:14px;padding:36px;width:100%;max-width:400px}
+.login-card h1{margin:0 0 18px;font-size:24px;color:var(--navy)}
+label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#475569;margin-bottom:14px}
+input{border:1px solid #CBD5E1;border-radius:8px;padding:10px 11px;font:inherit;font-size:13px}
+input:focus{outline:2px solid var(--blue);outline-offset:1px}
+.actions{display:flex;gap:10px;margin:6px 0 16px}
+.btn{border:1px solid #CBD5E1;background:#fff;color:var(--navy);border-radius:8px;padding:10px 20px;font:inherit;font-weight:600;min-height:44px;cursor:pointer}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.link{color:var(--blue-d);font-weight:500}
+.alert{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:13px}
