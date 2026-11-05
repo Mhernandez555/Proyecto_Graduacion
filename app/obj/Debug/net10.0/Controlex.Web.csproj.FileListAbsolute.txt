@@ -1,0 +1,10 @@
+C:\CONTROLEX\app\obj\Debug\net10.0\Controlex.Web.csproj.AssemblyReference.cache
+C:\CONTROLEX\app\obj\Debug\net10.0\rpswa.dswa.cache.json
+C:\CONTROLEX\app\obj\Debug\net10.0\Controlex.Web.GeneratedMSBuildEditorConfig.editorconfig
+C:\CONTROLEX\app\obj\Debug\net10.0\Controlex.Web.AssemblyInfoInputs.cache
+C:\CONTROLEX\app\obj\Debug\net10.0\Controlex.Web.AssemblyInfo.cs
+C:\CONTROLEX\app\obj\Debug\net10.0\Controlex.Web.csproj.CoreCompileInputs.cache
+C:\CONTROLEX\app\obj\Debug\net10.0\Controlex.Web.MvcApplicationPartsAssemblyInfo.cache
+C:\CONTROLEX\app\obj\Debug\net10.0\Controlex.Web.RazorAssemblyInfo.cache
+C:\CONTROLEX\app\obj\Debug\net10.0\Controlex.Web.RazorAssemblyInfo.cs
+C:\CONTROLEX\app\obj\Debug\net10.0\Controlex.Web.sourcelink.json
