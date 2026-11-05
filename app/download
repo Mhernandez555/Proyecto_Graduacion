@@ -1,0 +1,9 @@
+bin/
+obj/
+.vs/
+*.user
+# Credenciales: este archivo existe solo en tu computadora
+config/appsettings.Development.json
+storage/logs/*
+storage/cache/*
+!storage/**/.gitkeep
