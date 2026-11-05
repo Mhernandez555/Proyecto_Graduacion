@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 using Controlex.Web.Data;
+=======
+using Controlex.Web.Models;
+>>>>>>> 62c5efa3020e94f6d5358771d33d3b88e3bcae43
 namespace Controlex.Web.Services;
 
 public class BitacoraService(ControlexDbContext db, IHttpContextAccessor http)
