@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    
+    {
+      "name": "CONTROLEX (Development)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build CONTROLEX",
+      "program": "${workspaceFolder}\\bin\\Debug\\net10.0\\Controlex.Web.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development"
+      },
+      "console": "internalConsole",
+      "stopAtEntry": false
+    }
+  ]
+}

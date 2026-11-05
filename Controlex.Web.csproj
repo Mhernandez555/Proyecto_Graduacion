@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**\bin\**;**\obj\**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
     <!-- La carpeta test/ tendrá sus propios proyectos más adelante -->

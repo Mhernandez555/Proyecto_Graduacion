@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Controlex.Web.Data;
 using Controlex.Web.Models;
 using Controlex.Web.Services;
 using Microsoft.AspNetCore.Authentication;

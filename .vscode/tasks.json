@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build CONTROLEX",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}\\Controlex.Web.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

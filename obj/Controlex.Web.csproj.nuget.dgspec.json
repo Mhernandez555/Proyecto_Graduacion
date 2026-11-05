@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\CONTROLEX\\Controlex.Web.csproj": {}
+    "C:\\CONTROLEX\\Controlex.Web.csproj": {}
   },
   "projects": {
-    "c:\\CONTROLEX\\Controlex.Web.csproj": {
+    "C:\\CONTROLEX\\Controlex.Web.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\CONTROLEX\\Controlex.Web.csproj",
+        "projectUniqueName": "C:\\CONTROLEX\\Controlex.Web.csproj",
         "projectName": "Controlex.Web",
-        "projectPath": "c:\\CONTROLEX\\Controlex.Web.csproj",
+        "projectPath": "C:\\CONTROLEX\\Controlex.Web.csproj",
         "packagesPath": "C:\\Users\\samue\\.nuget\\packages\\",
-        "outputPath": "c:\\CONTROLEX\\obj\\",
+        "outputPath": "C:\\CONTROLEX\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\samue\\AppData\\Roaming\\NuGet\\NuGet.Config"
