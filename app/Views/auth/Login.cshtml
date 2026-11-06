@@ -7,11 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Iniciar sesión – CONTROLEX</title>
     <link rel="stylesheet" href="~/assets/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/modulos.css" asp-append-version="true" />
 </head>
 <body class="login-page">
 <main class="login-card">
     <div class="brand dark"><span class="brand-mark">C</span><span>CONTROLEX</span></div>
     <h1>Iniciar sesión</h1>
+    @if (TempData["Mensaje"] is string mensaje) { <div class="flash ok" role="status">@mensaje</div> }
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="alert" role="alert">
@@ -27,7 +29,7 @@
             <button type="submit" class="btn primary">Iniciar sesión</button>
             <button type="reset" class="btn">Cancelar</button>
         </div>
-        <a href="#" class="link">Recuperar contraseña</a>
+        <a asp-action="RecuperarContrasena" class="link">Recuperar contraseña</a>
     </form>
 </main>
 </body>

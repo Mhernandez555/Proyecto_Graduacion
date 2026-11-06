@@ -1,3 +1,4 @@
+using System.Globalization;
 using Controlex.Web.Models;
 using Controlex.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -8,10 +9,15 @@ using Microsoft.EntityFrameworkCore;
 // Utilidad: dotnet run -- hash "MiClave123!"  -> imprime el hash para usuarios.contrasena_hash
 if (args.Length == 2 && args[0] == "hash") { Console.WriteLine(PasswordHasher.Hash(args[1])); return; }
 
+// Cultura fija: los decimales se escriben con punto (1500.50) sin depender de la configuración regional del equipo
+var cultura = new CultureInfo("en-US");
+CultureInfo.DefaultThreadCurrentCulture = cultura;
+CultureInfo.DefaultThreadCurrentUICulture = cultura;
+
 // Los archivos estáticos viven en public/ (no en wwwroot/)
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = args, WebRootPath = "public" });
 
-// La configuración vive en config/. Aquí se leen la cadena de conexión y demás ajustes.
+// La configuración vive en config/. Aquí se leen la cadena de conexión, el correo y demás ajustes.
 builder.Configuration
     .AddJsonFile("config/appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"config/appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
@@ -22,13 +28,15 @@ if (string.IsNullOrWhiteSpace(cadena))
         "Falta la cadena de conexión. Copie config/appsettings.Development.example.json a " +
         "config/appsettings.Development.json y complete los datos de su servidor.");
 
-builder.Services.AddControllersWithViews();
+// Filtro global: si el usuario debe cambiar su contraseña, solo puede ir a esa pantalla (RF-022/RF-023)
+builder.Services.AddControllersWithViews(o => o.Filters.Add<CambioContrasenaObligatorioFilter>());
 // Las vistas se buscan en app/Views/<controlador>/ y app/Views/shared/
 builder.Services.Configure<RazorViewEngineOptions>(o => o.ViewLocationExpanders.Add(new AppViewLocationExpander()));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<ControlexDbContext>(o => o.UseSqlServer(cadena));
 builder.Services.AddScoped<PermisoService>();
 builder.Services.AddScoped<BitacoraService>();
+builder.Services.AddSingleton<CorreoService>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>
     {

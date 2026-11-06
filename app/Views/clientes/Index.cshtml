@@ -1,0 +1,32 @@
+@model List<Cliente>
+@{ ViewData["Title"] = "Mantenimiento de clientes"; }
+<div class="page-head">
+    <p>Clientes de WallRed que se asocian a los proyectos.</p>
+    <a class="btn primary" asp-action="Crear">Nuevo cliente</a>
+</div>
+<div class="card"><div class="table-wrap">
+    <table class="grid">
+        <thead><tr><th>Identificación</th><th>Cliente</th><th>Tipo</th><th>Contacto</th><th>Teléfono</th><th>Correo</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.Identificacion</td>
+                <td>@c.NombreCliente</td>
+                <td>@c.TipoCliente.Nombre</td>
+                <td>@c.Contacto</td>
+                <td>@c.Telefono1</td>
+                <td>@c.Correo</td>
+                <td><span class="pill @(c.Estado ? "ok" : "off")">@(c.Estado ? "Activo" : "Inactivo")</span></td>
+                <td class="acciones">
+                    <a class="btn small" asp-action="Editar" asp-route-id="@c.IdCliente">Editar</a>
+                    <form asp-action="CambiarEstado" asp-route-id="@c.IdCliente" method="post">
+                        <button type="submit" class="btn small">@(c.Estado ? "Inhabilitar" : "Habilitar")</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any()) { <p class="muted">No hay clientes registrados.</p> }
+</div></div>

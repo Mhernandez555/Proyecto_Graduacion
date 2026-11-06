@@ -1,0 +1,32 @@
+@model UsuarioViewModel
+@{
+    var nuevo = Model.IdUsuario == 0;
+    ViewData["Title"] = nuevo ? "Nuevo usuario" : "Editar usuario";
+}
+<div class="card">
+    <form asp-action="@(nuevo ? "Crear" : "Editar")" asp-route-id="@(nuevo ? null : Model.IdUsuario)" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert"></div>
+        <div class="form-grid">
+            <div class="field"><label asp-for="Cedula"></label><input asp-for="Cedula" inputmode="numeric" /><span asp-validation-for="Cedula" class="field-error"></span></div>
+            <div class="field"><label asp-for="Nombre"></label><input asp-for="Nombre" /><span asp-validation-for="Nombre" class="field-error"></span></div>
+            <div class="field"><label asp-for="Apellido1"></label><input asp-for="Apellido1" /><span asp-validation-for="Apellido1" class="field-error"></span></div>
+            <div class="field"><label asp-for="Apellido2"></label><input asp-for="Apellido2" /><span asp-validation-for="Apellido2" class="field-error"></span></div>
+            <div class="field"><label asp-for="Correo"></label><input asp-for="Correo" type="email" /><span asp-validation-for="Correo" class="field-error"></span></div>
+            <div class="field"><label asp-for="IdRol"></label>
+                <select asp-for="IdRol" asp-items="(SelectList)ViewBag.Roles"><option value="0">Seleccione un rol...</option></select>
+                <span asp-validation-for="IdRol" class="field-error"></span></div>
+            <div class="field"><label asp-for="NombreUsuario"></label><input asp-for="NombreUsuario" autocomplete="off" /><span asp-validation-for="NombreUsuario" class="field-error"></span></div>
+            <div class="field"><label asp-for="CostoHora"></label><input asp-for="CostoHora" type="number" step="0.01" min="0" /><span asp-validation-for="CostoHora" class="field-error"></span></div>
+            <div class="field"><label asp-for="Contrasena"></label><input asp-for="Contrasena" type="password" autocomplete="new-password" />
+                @if (nuevo) { <span class="hint">Mínimo 8 caracteres, con letras, números y caracteres especiales. El usuario deberá cambiarla al ingresar.</span> }
+                else { <span class="hint">Déjela vacía para no cambiarla. Si la cambia, el usuario deberá cambiarla al ingresar.</span> }
+                <span asp-validation-for="Contrasena" class="field-error"></span></div>
+            <div class="field"><label asp-for="ConfirmarContrasena"></label><input asp-for="ConfirmarContrasena" type="password" autocomplete="new-password" /><span asp-validation-for="ConfirmarContrasena" class="field-error"></span></div>
+            <div class="field"><label class="check"><input asp-for="Estado" /> Usuario activo</label><span asp-validation-for="Estado" class="field-error"></span></div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn primary">@(nuevo ? "Aceptar" : "Actualizar")</button>
+            <a asp-action="Index" class="btn">Cancelar</a>
+        </div>
+    </form>
+</div>

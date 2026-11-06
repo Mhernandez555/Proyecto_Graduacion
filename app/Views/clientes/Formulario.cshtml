@@ -1,0 +1,27 @@
+@model ClienteViewModel
+@{
+    var nuevo = Model.IdCliente == 0;
+    ViewData["Title"] = nuevo ? "Nuevo cliente" : "Editar cliente";
+}
+<div class="card">
+    <form asp-action="@(nuevo ? "Crear" : "Editar")" asp-route-id="@(nuevo ? null : Model.IdCliente)" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert"></div>
+        <div class="form-grid">
+            <div class="field"><label asp-for="IdTipoCliente"></label>
+                <select asp-for="IdTipoCliente" asp-items="(SelectList)ViewBag.Tipos"><option value="0">Seleccione el tipo...</option></select>
+                <span asp-validation-for="IdTipoCliente" class="field-error"></span></div>
+            <div class="field"><label asp-for="Identificacion"></label><input asp-for="Identificacion" inputmode="numeric" /><span asp-validation-for="Identificacion" class="field-error"></span></div>
+            <div class="field"><label asp-for="NombreCliente"></label><input asp-for="NombreCliente" /><span asp-validation-for="NombreCliente" class="field-error"></span></div>
+            <div class="field"><label asp-for="Contacto"></label><input asp-for="Contacto" /><span asp-validation-for="Contacto" class="field-error"></span></div>
+            <div class="field"><label asp-for="Telefono1"></label><input asp-for="Telefono1" type="tel" inputmode="numeric" /><span asp-validation-for="Telefono1" class="field-error"></span></div>
+            <div class="field"><label asp-for="Telefono2"></label><input asp-for="Telefono2" type="tel" inputmode="numeric" /><span asp-validation-for="Telefono2" class="field-error"></span></div>
+            <div class="field"><label asp-for="Correo"></label><input asp-for="Correo" type="email" /><span asp-validation-for="Correo" class="field-error"></span></div>
+            <div class="field"><label asp-for="Direccion"></label><input asp-for="Direccion" /><span asp-validation-for="Direccion" class="field-error"></span></div>
+            <div class="field"><label class="check"><input asp-for="Estado" /> Cliente activo</label></div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn primary">@(nuevo ? "Aceptar" : "Actualizar")</button>
+            <a asp-action="Index" class="btn">Cancelar</a>
+        </div>
+    </form>
+</div>

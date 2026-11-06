@@ -1,0 +1,56 @@
+@model RolViewModel
+@functions {
+    static string Etiqueta(string modulo) => modulo switch
+    {
+        "PROYECTOS" => "Proyectos (RF-003)",
+        "TAREAS" => "Tareas (RF-004)",
+        "REP_RENTABILIDAD" => "Reporte de rentabilidad (RF-005)",
+        "REP_TAREAS" => "Reporte de eficiencia y pendientes (RF-024)",
+        "BITACORAS" => "Bitácoras (RF-007)",
+        "USUARIOS" => "Mantenimiento de usuarios (RF-009)",
+        "CLIENTES" => "Mantenimiento de clientes (RF-008)",
+        "ROLES_PERMISOS" => "Roles y permisos (RF-010)",
+        _ => modulo
+    };
+}
+@{
+    var nuevo = Model.IdRol == 0;
+    ViewData["Title"] = nuevo ? "Nuevo rol" : "Editar rol";
+}
+<div class="card">
+    <form asp-action="@(nuevo ? "Crear" : "Editar")" asp-route-id="@(nuevo ? null : Model.IdRol)" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert"></div>
+        <div class="form-grid">
+            <div class="field"><label asp-for="NombreRol"></label><input asp-for="NombreRol" /><span asp-validation-for="NombreRol" class="field-error"></span></div>
+            <div class="field"><label asp-for="Descripcion"></label><input asp-for="Descripcion" /><span asp-validation-for="Descripcion" class="field-error"></span></div>
+            <div class="field"><label class="check"><input asp-for="EsAdministrador" /> Acceso administrativo total</label>
+                <span class="hint">Si se marca, el rol accede a todo y prevalece sobre los permisos de la tabla.</span></div>
+            <div class="field"><label class="check"><input asp-for="Estado" /> Rol activo</label></div>
+        </div>
+
+        <h2 class="section-title">Permisos por módulo</h2>
+        <table class="grid perm-table">
+            <thead><tr><th>Módulo</th><th>Nivel de acceso</th></tr></thead>
+            <tbody>
+            @for (var i = 0; i < Model.Permisos.Count; i++)
+            {
+                <tr>
+                    <td>@Etiqueta(Model.Permisos[i].Modulo)<input type="hidden" asp-for="Permisos[i].Modulo" /></td>
+                    <td>
+                        <select asp-for="Permisos[i].Nivel" aria-label="Nivel de acceso a @Etiqueta(Model.Permisos[i].Modulo)">
+                            <option value="0">Sin acceso</option>
+                            <option value="1">Parcial</option>
+                            <option value="2">Total</option>
+                        </select>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+
+        <div class="form-actions">
+            <button type="submit" class="btn primary">@(nuevo ? "Aceptar" : "Actualizar")</button>
+            <a asp-action="Index" class="btn">Cancelar</a>
+        </div>
+    </form>
+</div>

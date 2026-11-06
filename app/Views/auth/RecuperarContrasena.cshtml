@@ -1,0 +1,35 @@
+@model RecuperarContrasenaViewModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Recuperar contraseña – CONTROLEX</title>
+    <link rel="stylesheet" href="~/assets/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/modulos.css" asp-append-version="true" />
+</head>
+<body class="login-page">
+<main class="login-card">
+    <div class="brand dark"><span class="brand-mark">C</span><span>CONTROLEX</span></div>
+    <h1>Recuperar contraseña</h1>
+    <p class="muted">Ingrese sus datos. Si coinciden, le enviaremos una contraseña temporal al correo registrado.</p>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert" role="alert">
+            @foreach (var e in ViewData.ModelState.SelectMany(x => x.Value!.Errors)) { <div>@e.ErrorMessage</div> }
+        </div>
+    }
+    <form asp-action="RecuperarContrasena" method="post">
+        <label>@Html.DisplayNameFor(m => m.NombreUsuario)
+            <input asp-for="NombreUsuario" autocomplete="username" autofocus /></label>
+        <label>@Html.DisplayNameFor(m => m.Cedula)
+            <input asp-for="Cedula" inputmode="numeric" /></label>
+        <div class="actions">
+            <button type="submit" class="btn primary">Recuperar</button>
+            <a asp-action="Login" class="btn">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

@@ -1,0 +1,23 @@
+@model List<Rol>
+@{ ViewData["Title"] = "Roles y permisos"; }
+<div class="page-head">
+    <p>Roles del sistema y los módulos a los que accede cada uno.</p>
+    <a class="btn primary" asp-action="Crear">Nuevo rol</a>
+</div>
+<div class="card"><div class="table-wrap">
+    <table class="grid">
+        <thead><tr><th>Rol</th><th>Descripción</th><th>Acceso</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.NombreRol</td>
+                <td>@r.Descripcion</td>
+                <td>@(r.EsAdministrador ? "Total (administrador)" : "Según permisos")</td>
+                <td><span class="pill @(r.Estado ? "ok" : "off")">@(r.Estado ? "Activo" : "Inactivo")</span></td>
+                <td class="acciones"><a class="btn small" asp-action="Editar" asp-route-id="@r.IdRol">Editar</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div></div>

@@ -1,0 +1,32 @@
+@model List<Usuario>
+@{ ViewData["Title"] = "Mantenimiento de usuarios"; }
+<div class="page-head">
+    <p>Usuarios con acceso al sistema.</p>
+    <a class="btn primary" asp-action="Crear">Nuevo usuario</a>
+</div>
+<div class="card"><div class="table-wrap">
+    <table class="grid">
+        <thead><tr><th>Cédula</th><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Correo</th><th>Costo/hora</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.Cedula</td>
+                <td>@u.Nombre @u.Apellido1 @u.Apellido2</td>
+                <td>@u.NombreUsuario</td>
+                <td>@u.Rol.NombreRol</td>
+                <td>@u.Correo</td>
+                <td>₡@u.CostoHora.ToString("N2")</td>
+                <td><span class="pill @(u.Estado ? "ok" : "off")">@(u.Estado ? "Activo" : "Inactivo")</span></td>
+                <td class="acciones">
+                    <a class="btn small" asp-action="Editar" asp-route-id="@u.IdUsuario">Editar</a>
+                    <form asp-action="CambiarEstado" asp-route-id="@u.IdUsuario" method="post">
+                        <button type="submit" class="btn small">@(u.Estado ? "Inhabilitar" : "Habilitar")</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any()) { <p class="muted">No hay usuarios registrados.</p> }
+</div></div>

@@ -1,0 +1,24 @@
+@model CambiarContrasenaViewModel
+@{
+    ViewData["Title"] = "Cambiar contraseña";
+    var obligatorio = User.FindFirst("requiere_cambio")?.Value == "True";
+}
+@if (obligatorio) { <div class="flash err" role="alert">Debe cambiar su contraseña temporal antes de continuar.</div> }
+<div class="card narrow">
+    <form asp-action="CambiarContrasena" method="post">
+        <div class="field"><label asp-for="ContrasenaActual"></label>
+            <input asp-for="ContrasenaActual" type="password" autocomplete="current-password" />
+            <span asp-validation-for="ContrasenaActual" class="field-error"></span></div>
+        <div class="field"><label asp-for="NuevaContrasena"></label>
+            <input asp-for="NuevaContrasena" type="password" autocomplete="new-password" />
+            <span class="hint">Mínimo 8 caracteres, con letras, números y caracteres especiales.</span>
+            <span asp-validation-for="NuevaContrasena" class="field-error"></span></div>
+        <div class="field"><label asp-for="ConfirmarContrasena"></label>
+            <input asp-for="ConfirmarContrasena" type="password" autocomplete="new-password" />
+            <span asp-validation-for="ConfirmarContrasena" class="field-error"></span></div>
+        <div class="form-actions">
+            <button type="submit" class="btn primary">Aceptar</button>
+            @if (!obligatorio) { <a asp-controller="Dashboard" asp-action="Index" class="btn">Cancelar</a> }
+        </div>
+    </form>
+</div>
