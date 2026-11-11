@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Infrastructure;
 
 // Utilidad: dotnet run -- hash "MiClave123!"  -> imprime el hash para usuarios.contrasena_hash
 if (args.Length == 2 && args[0] == "hash") { Console.WriteLine(PasswordHasher.Hash(args[1])); return; }
@@ -13,6 +14,9 @@ if (args.Length == 2 && args[0] == "hash") { Console.WriteLine(PasswordHasher.Ha
 var cultura = new CultureInfo("en-US");
 CultureInfo.DefaultThreadCurrentCulture = cultura;
 CultureInfo.DefaultThreadCurrentUICulture = cultura;
+
+// Licencia de QuestPDF (exportación a PDF): Community, gratuita para organizaciones con ingresos menores a 1 millón de dólares
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Los archivos estáticos viven en public/ (no en wwwroot/)
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = args, WebRootPath = "public" });
@@ -36,6 +40,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<ControlexDbContext>(o => o.UseSqlServer(cadena));
 builder.Services.AddScoped<PermisoService>();
 builder.Services.AddScoped<BitacoraService>();
+builder.Services.AddScoped<ReporteService>();
 builder.Services.AddSingleton<CorreoService>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>

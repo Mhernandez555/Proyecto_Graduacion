@@ -7,6 +7,7 @@
     <title>@ViewData["Title"] – CONTROLEX</title>
     <link rel="stylesheet" href="~/assets/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/modulos.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/reportes.css" asp-append-version="true" />
 </head>
 <body class="app">
 <aside class="sidebar">
@@ -28,8 +29,8 @@
         @if (Nivel("REP_RENTABILIDAD") > 0 || Nivel("REP_TAREAS") > 0)
         {
             <div class="nav-group">Reportes</div>
-            @if (Nivel("REP_RENTABILIDAD") > 0) { <a class="nav-sub" href="#">Rentabilidad de proyectos</a> }
-            @if (Nivel("REP_TAREAS") > 0) { <a class="nav-sub" href="#">Eficiencia y pendientes</a> }
+            @if (Nivel("REP_RENTABILIDAD") > 0) { <a class="nav-sub" asp-controller="Reportes" asp-action="Rentabilidad">Rentabilidad de proyectos</a> }
+            @if (Nivel("REP_TAREAS") > 0) { <a class="nav-sub" asp-controller="Reportes" asp-action="Tareas">Eficiencia y pendientes</a> }
         }
         <div class="nav-group">Seguridad</div>
         @if (Nivel("ROLES_PERMISOS") > 0) { <a class="nav-sub" asp-controller="Roles" asp-action="Index">Roles y permisos</a> }

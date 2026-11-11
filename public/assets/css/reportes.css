@@ -1,0 +1,10 @@
+/* Filtros y tablas de los reportes. Provisional hasta aplicar los prototipos aprobados. */
+.filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 16px;align-items:end}
+.filtros .form-actions{grid-column:1/-1}
+.card + .card,.card + p,p + .card{margin-top:16px}
+.num{text-align:right;white-space:nowrap}
+.neg{color:#B91C1C;font-weight:600}
+table.grid tfoot th{background:#F8FAFC;border-top:2px solid var(--line);font-size:13px;color:var(--text)}
+.pill.info{background:#DBEAFE;color:#1E40AF}
+.pill.warn{background:#FEF3C7;color:#92400E}
+.pill.bad{background:#FEE2E2;color:#991B1B}

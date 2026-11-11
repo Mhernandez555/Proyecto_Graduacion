@@ -39,12 +39,56 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXGF1dGhcTG9naW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/CONTROLEX/app/Views/auth/RecuperarContrasena.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXGF1dGhcUmVjdXBlcmFyQ29udHJhc2VuYS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/clientes/Formulario.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXGNsaWVudGVzXEZvcm11bGFyaW8uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/clientes/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXGNsaWVudGVzXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/CONTROLEX/app/Views/dashboard/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXGRhc2hib2FyZFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/CONTROLEX/app/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXEhvbWVcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/reportes/Rentabilidad.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXHJlcG9ydGVzXFJlbnRhYmlsaWRhZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/reportes/Tareas.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXHJlcG9ydGVzXFRhcmVhcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/roles/Formulario.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXHJvbGVzXEZvcm11bGFyaW8uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/roles/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXHJvbGVzXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/seguridad/CambiarContrasena.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXHNlZ3VyaWRhZFxDYW1iaWFyQ29udHJhc2VuYS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXFNoYXJlZFxfTGF5b3V0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/usuarios/Formulario.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXHVzdWFyaW9zXEZvcm11bGFyaW8uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/usuarios/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXHVzdWFyaW9zXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/CONTROLEX/app/Views/_ViewImports.cshtml]
