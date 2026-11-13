@@ -1,2 +1,76 @@
-@{ ViewData["Title"] = "Inicio"; }
-<div class="card"><h2>Bienvenido a CONTROLEX</h2><p>Sistema de gestión de proyectos y tareas de WallRed.</p></div>
+@model InicioViewModel
+@{
+    ViewData["Title"] = "Inicio";
+    var nombre = User.FindFirst("nombre_completo")?.Value;
+}
+<p class="saludo">Bienvenido, <strong>@nombre</strong>.</p>
+
+<div class="stats">
+    <div class="stat"><strong>@Model.MisPendientes</strong><span>Mis tareas pendientes</span></div>
+    <div class="stat"><strong>@Model.MisEnProceso</strong><span>Mis tareas en proceso</span></div>
+    <div class="stat @(Model.MisVencidas > 0 ? "bad" : "")"><strong>@Model.MisVencidas</strong><span>Mis tareas vencidas</span></div>
+    @if (Model.VeEquipo)
+    {
+        <div class="stat"><strong>@Model.ProyectosEnEjecucion</strong><span>Proyectos en ejecución</span></div>
+        <div class="stat warn"><strong>@Model.TareasPendientesEquipo</strong><span>Tareas sin completar (equipo)</span></div>
+    }
+</div>
+
+<div class="dos-col">
+    <div class="card">
+        <h2 class="section-title">Mis próximas tareas</h2>
+        @if (!Model.ProximasTareas.Any())
+        {
+            <p class="muted">No tiene tareas pendientes.</p>
+        }
+        else
+        {
+            <div class="table-wrap"><table class="grid">
+                <thead><tr><th>Código</th><th>Tarea</th><th>Proyecto</th><th>Estado</th><th>Vence</th></tr></thead>
+                <tbody>
+                @foreach (var t in Model.ProximasTareas)
+                {
+                    <tr>
+                        <td>@t.Codigo</td>
+                        <td>@t.Nombre</td>
+                        <td>@t.Proyecto</td>
+                        <td><span class="pill @Formato.ClaseEstado(t.Estado)">@t.Estado</span></td>
+                        <td>
+                            @Formato.Fecha(t.FechaFin)
+                            @if (t.Vencida) { <span class="pill bad">Vencida</span> }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table></div>
+        }
+    </div>
+
+    @if (Model.VeEquipo)
+    {
+        <div class="card">
+            <h2 class="section-title">Proyectos en ejecución</h2>
+            @if (!Model.ProyectosActivos.Any())
+            {
+                <p class="muted">No hay proyectos en ejecución.</p>
+            }
+            else
+            {
+                <div class="table-wrap"><table class="grid">
+                    <thead><tr><th>Código</th><th>Proyecto</th><th>Cliente</th><th>Fin previsto</th></tr></thead>
+                    <tbody>
+                    @foreach (var p in Model.ProyectosActivos)
+                    {
+                        <tr>
+                            <td>@p.Codigo</td>
+                            <td>@p.Nombre</td>
+                            <td>@p.Cliente</td>
+                            <td>@Formato.Fecha(p.FechaFin)</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table></div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,81 @@
+@model ProyectosIndexViewModel
+@{ ViewData["Title"] = "Proyectos"; }
+<div class="page-head">
+    <p>@(Model.Total ? "Proyectos de WallRed." : "Proyectos en los que participa.")</p>
+    @if (Model.Total) { <a class="btn primary" asp-action="Crear">Nuevo proyecto</a> }
+</div>
+
+<div class="card">
+    <form method="get" asp-action="Index" class="filtros">
+        <div class="field">
+            <label for="texto">Código o nombre</label>
+            <input type="text" id="texto" name="texto" value="@ViewBag.Texto" />
+        </div>
+        <div class="field">
+            <label for="idCliente">Cliente</label>
+            <select id="idCliente" name="idCliente">
+                <option value="">Todos</option>
+                @foreach (var o in (SelectList)ViewBag.Clientes) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+            </select>
+        </div>
+        <div class="field">
+            <label for="idEstado">Estado</label>
+            <select id="idEstado" name="idEstado">
+                <option value="">Todos</option>
+                @foreach (var o in (SelectList)ViewBag.Estados) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+            </select>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn primary">Filtrar</button>
+            <a asp-action="Index" class="btn">Limpiar filtros</a>
+        </div>
+    </form>
+</div>
+
+@if (!Model.Filas.Any())
+{
+    <p class="muted">No se encontraron proyectos con esos criterios.</p>
+}
+else
+{
+    <div class="card"><div class="table-wrap">
+        <table class="grid">
+            <thead><tr>
+                <th>Código</th><th>Proyecto</th><th>Cliente</th><th>Categoría</th><th>Responsable</th><th>Estado</th>
+                <th>Inicio</th><th>Fin previsto</th><th>Avance</th>
+                @if (Model.Total) { <th class="num">Precio de venta</th><th class="num">Costo</th><th class="num">Rentabilidad</th> }
+                <th>Acciones</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var p in Model.Filas)
+            {
+                <tr>
+                    <td>@p.Codigo</td>
+                    <td>@p.Nombre</td>
+                    <td>@p.Cliente</td>
+                    <td>@p.Categoria</td>
+                    <td>@p.Responsable</td>
+                    <td><span class="pill @Formato.ClaseEstado(p.Estado)">@p.Estado</span></td>
+                    <td>@Formato.Fecha(p.FechaInicio)</td>
+                    <td>@Formato.Fecha(p.FechaFin)</td>
+                    <td>@(p.TareasTotal == 0 ? "Sin tareas" : $"{p.TareasCompletadas} de {p.TareasTotal} tareas")</td>
+                    @if (Model.Total)
+                    {
+                        <td class="num">@Formato.Dinero(p.Precio ?? 0m)</td>
+                        <td class="num">@Formato.Dinero(p.Costo ?? 0m)</td>
+                        <td class="num @((p.Rentabilidad ?? 0m) < 0 ? "neg" : "")">@Formato.Dinero(p.Rentabilidad ?? 0m)</td>
+                    }
+                    <td class="acciones">
+                        <a class="btn small" asp-action="Detalle" asp-route-id="@p.IdProyecto">Consultar</a>
+                        @if (Model.Total) { <a class="btn small" asp-action="Editar" asp-route-id="@p.IdProyecto">Editar</a> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div></div>
+    @if (Model.HayMas)
+    {
+        <p class="muted">Se muestran los primeros @Model.Limite proyectos. Use los filtros para acotar la lista.</p>
+    }
+}

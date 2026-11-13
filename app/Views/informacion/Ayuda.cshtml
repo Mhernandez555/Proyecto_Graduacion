@@ -1,0 +1,163 @@
+@{ ViewData["Title"] = "Ayuda – Manual de usuario"; }
+<div class="page-head no-print">
+    <p>Manual de usuario de CONTROLEX. Su menú muestra solo las opciones que su rol permite.</p>
+    <button type="button" class="btn" onclick="window.print()">Imprimir o guardar como PDF</button>
+</div>
+
+<div class="card manual">
+    <h2 class="section-title">Contenido</h2>
+    <ol class="indice">
+        <li><a href="#ingreso">Ingresar y salir del sistema</a></li>
+        <li><a href="#clave">Contraseñas</a></li>
+        <li><a href="#menu">El menú y los roles</a></li>
+        <li><a href="#proyectos">Proyectos</a></li>
+        <li><a href="#tareas">Tareas y registro de tiempo</a></li>
+        <li><a href="#usuarios">Usuarios</a></li>
+        <li><a href="#roles">Roles y permisos</a></li>
+        <li><a href="#clientes">Clientes</a></li>
+        <li><a href="#reportes">Reportes</a></li>
+        <li><a href="#bitacoras">Bitácoras</a></li>
+        <li><a href="#soporte">Mensajes frecuentes</a></li>
+    </ol>
+
+    <h2 id="ingreso">1. Ingresar y salir del sistema</h2>
+    <ol>
+        <li>Escriba su <strong>nombre de usuario</strong> y su <strong>contraseña</strong> en la pantalla de inicio de sesión.</li>
+        <li>Presione <strong>Iniciar sesión</strong>. El botón <strong>Cancelar</strong> limpia los campos.</li>
+        <li>Si algún dato es incorrecto, aparece una alerta con el mensaje "Usuario o contraseña incorrectos".</li>
+        <li>Para salir, use <strong>Cerrar sesión</strong> en la parte inferior del menú.</li>
+    </ol>
+    <div class="nota">Por seguridad, la sesión se cierra sola después de 15 minutos sin actividad. Deberá ingresar de nuevo.</div>
+
+    <h2 id="clave">2. Contraseñas</h2>
+    <h3>Cambiar la contraseña</h3>
+    <ol>
+        <li>Abra <strong>Seguridad → Cambiar contraseña</strong>.</li>
+        <li>Escriba su contraseña actual, la nueva y la confirmación.</li>
+        <li>Presione <strong>Aceptar</strong>.</li>
+    </ol>
+    <p>La nueva contraseña debe tener al menos 8 caracteres e incluir letras, números y caracteres especiales (por ejemplo ! @@ # $ %). También debe ser distinta de la actual.</p>
+
+    <h3>Si olvidó su contraseña</h3>
+    <ol>
+        <li>En la pantalla de inicio de sesión, presione <strong>Recuperar contraseña</strong>.</li>
+        <li>Escriba su nombre de usuario y su número de cédula.</li>
+        <li>Si los datos coinciden con un usuario activo, recibirá una <strong>contraseña temporal</strong> en el correo registrado.</li>
+        <li>Ingrese con la contraseña temporal. El sistema le pedirá cambiarla antes de continuar.</li>
+    </ol>
+
+    <h2 id="menu">3. El menú y los roles</h2>
+    <p>El menú lateral agrupa las opciones: Inicio, Proyectos, Tareas, Reportes, Seguridad, Bitácoras y Catálogos, además de Acerca de y Ayuda. Cada persona ve únicamente lo que su rol permite:</p>
+    <ul>
+        <li><strong>Administrador:</strong> acceso completo.</li>
+        <li><strong>Soporte TI:</strong> funciones de soporte y administración, sin la gestión de roles y permisos.</li>
+        <li><strong>Empleado:</strong> acceso limitado a los proyectos en los que participa, sus propias tareas y sus reportes.</li>
+    </ul>
+    <p>La pantalla de <strong>Inicio</strong> resume sus tareas pendientes, en proceso y vencidas. Quienes tienen acceso total a proyectos ven además los proyectos en ejecución.</p>
+
+    <h2 id="proyectos">4. Proyectos</h2>
+    <h3>Ver y consultar proyectos</h3>
+    <ol>
+        <li>Abra <strong>Proyectos → Ver proyectos</strong>. Puede filtrar por código o nombre, cliente y estado.</li>
+        <li>Presione <strong>Consultar</strong> para ver los datos del proyecto, su avance y sus tareas.</li>
+    </ol>
+    <p>Quien tiene acceso total ve además el <strong>precio de venta</strong>, el <strong>costo acumulado</strong> y la <strong>rentabilidad</strong>. Quien tiene acceso parcial, como el rol Empleado, ve solo los proyectos que dirige o en los que tiene una tarea asignada, sin ningún monto, y únicamente sus propias tareas.</p>
+
+    <h3>Crear y editar proyectos</h3>
+    <p>Disponible para Administrador y Soporte TI, en <strong>Proyectos → Crear proyecto</strong>.</p>
+    <ol>
+        <li>Complete el nombre, el cliente, la categoría, el estado, el responsable, las fechas y el precio de venta.</li>
+        <li>Presione <strong>Guardar</strong>. El sistema genera el código del proyecto (por ejemplo PRY-0004).</li>
+        <li>Para modificarlo, presione <strong>Editar</strong> y luego <strong>Actualizar</strong>.</li>
+    </ol>
+    <p>El costo y la rentabilidad no se escriben: el sistema los calcula con las horas que se registran en las tareas del proyecto, multiplicadas por el costo por hora de cada registro.</p>
+
+    <h3>Cambiar el estado</h3>
+    <p>En la pantalla del proyecto, use <strong>Cambiar estado</strong> (Planificado, En ejecución, Finalizado o Cancelado).</p>
+    <div class="nota">Un proyecto solo se puede finalizar cuando todas sus tareas están completadas. Los proyectos no se eliminan: si ya no se ejecutará, márquelo como Cancelado.</div>
+
+    <h2 id="tareas">5. Tareas y registro de tiempo</h2>
+    <h3>Ver y consultar tareas</h3>
+    <ol>
+        <li>Abra <strong>Tareas → Ver tareas</strong>. Puede filtrar por proyecto, estado y, si su rol lo permite, por usuario asignado.</li>
+        <li>Presione <strong>Consultar</strong> en una tarea para ver su información, el tiempo registrado y los comentarios.</li>
+    </ol>
+    <p>Quien tiene acceso parcial, como el rol Empleado, ve únicamente las tareas que le asignaron.</p>
+
+    <h3>Crear y editar tareas</h3>
+    <p>Disponible para Administrador y Soporte TI, en <strong>Tareas → Crear tarea</strong>.</p>
+    <ol>
+        <li>Complete el nombre, el proyecto, la categoría, el estado, las fechas y el tiempo estimado en horas.</li>
+        <li>Marque a uno o varios <strong>usuarios asignados</strong>. Toda tarea debe tener al menos uno.</li>
+        <li>Presione <strong>Guardar</strong>. El sistema genera el código de la tarea (por ejemplo TAR-0007).</li>
+        <li>Para modificarla, presione <strong>Editar</strong> y luego <strong>Actualizar</strong>.</li>
+    </ol>
+    <div class="nota">No se pueden agregar tareas a proyectos finalizados o cancelados. Tampoco se puede quitar de una tarea a un usuario que ya registró tiempo en ella.</div>
+
+    <h3>Registrar tiempo</h3>
+    <ol>
+        <li>Abra la tarea con <strong>Consultar</strong>.</li>
+        <li>En <strong>Registrar tiempo</strong>, indique la fecha trabajada, las horas y, si desea, un comentario.</li>
+        <li>Presione <strong>Registrar</strong>.</li>
+    </ol>
+    <p>La fecha no puede ser futura y no se pueden registrar más de 24 horas por día entre todas las tareas de una persona. Cada registro guarda el costo por hora que el usuario tiene en ese momento, y ese dato se usa en el reporte de rentabilidad. Quien tiene acceso total puede registrar tiempo a nombre de cualquier usuario asignado.</p>
+    <p>Para corregir un error, use <strong>Eliminar</strong> en el registro. Un empleado solo puede eliminar sus propios registros el mismo día en que los hizo; Administrador y Soporte TI pueden eliminar cualquiera.</p>
+
+    <h3>Cambiar el estado y escribir comentarios</h3>
+    <ol>
+        <li>En la tarea, abra <strong>Estado y comentarios</strong>.</li>
+        <li>Elija el estado (Pendiente, En proceso o Completada), escriba los comentarios y presione <strong>Actualizar</strong>.</li>
+    </ol>
+    <p>Al pasar a "En proceso" se completa la fecha de inicio si estaba vacía, y al pasar a "Completada" se completa la fecha de finalización.</p>
+
+    <h2 id="usuarios">6. Usuarios</h2>
+    <p>Se encuentra en <strong>Catálogos → Usuarios</strong>.</p>
+    <ol>
+        <li>Presione <strong>Nuevo usuario</strong> y complete cédula, nombre, apellidos, correo, rol, nombre de usuario, costo por hora y contraseña.</li>
+        <li>Presione <strong>Aceptar</strong>. El nuevo usuario deberá cambiar su contraseña en el primer ingreso.</li>
+        <li>Para modificar un usuario, presione <strong>Editar</strong>, haga los cambios y presione <strong>Actualizar</strong>. Si deja la contraseña vacía, no se cambia.</li>
+        <li>Los usuarios no se eliminan: use <strong>Inhabilitar</strong> o <strong>Habilitar</strong>. Un usuario inhabilitado no puede ingresar.</li>
+    </ol>
+    <div class="nota">No se puede inhabilitar el propio usuario. La cédula, el correo y el nombre de usuario no pueden repetirse. El costo por hora debe definirse para que el costo de las tareas sea real.</div>
+
+    <h2 id="roles">7. Roles y permisos</h2>
+    <p>Se encuentra en <strong>Seguridad → Roles y permisos</strong> y solo está disponible para quien tenga ese permiso.</p>
+    <ol>
+        <li>Presione <strong>Nuevo rol</strong>, o <strong>Editar</strong> en un rol existente.</li>
+        <li>Para cada módulo elija el nivel: <strong>Sin acceso</strong>, <strong>Parcial</strong> (consulta o solo lo propio, según el módulo) o <strong>Total</strong>.</li>
+        <li>La opción <strong>Acceso administrativo total</strong> da acceso a todo y prevalece sobre los permisos de la tabla.</li>
+        <li>Presione <strong>Aceptar</strong> o <strong>Actualizar</strong>.</li>
+    </ol>
+    <div class="nota">Los cambios de permisos se aplican la próxima vez que cada usuario inicie sesión. Siempre debe existir al menos un rol administrador activo.</div>
+
+    <h2 id="clientes">8. Clientes</h2>
+    <p>Se encuentra en <strong>Catálogos → Clientes</strong>. Presione <strong>Nuevo cliente</strong> y complete tipo, identificación, nombre, contacto, teléfonos, correo y dirección. La identificación debe tener solo números y el teléfono principal es obligatorio. Los clientes se inhabilitan en lugar de eliminarse.</p>
+
+    <h2 id="reportes">9. Reportes</h2>
+    <p>Se encuentran en el menú <strong>Reportes</strong>. En ambos, elija los filtros, presione <strong>Consultar</strong> y, si lo necesita, <strong>Exportar PDF</strong>, que abre el reporte en una pestaña nueva.</p>
+    <h3>Rentabilidad de proyectos</h3>
+    <p>Muestra, por proyecto, el precio de venta, el costo y la rentabilidad. El <strong>costo</strong> es la suma de las horas registradas multiplicadas por el costo por hora de cada registro. La <strong>rentabilidad</strong> es el precio de venta menos el costo. Se puede filtrar por proyecto y por fecha de inicio.</p>
+    <h3>Eficiencia y pendientes</h3>
+    <ul>
+        <li><strong>Eficiencia de tareas:</strong> compara las horas estimadas con las registradas. Una eficiencia de 100 % o más significa que la tarea se hizo dentro de lo estimado.</li>
+        <li><strong>Tareas pendientes:</strong> lista las tareas que no están completadas. Se marcan como "Vencida" cuando su fecha de finalización ya pasó.</li>
+    </ul>
+    <p>Quienes tienen acceso parcial a este reporte, como el rol Empleado, ven solo las tareas asignadas a ellos.</p>
+
+    <h2 id="bitacoras">10. Bitácoras</h2>
+    <p>Se encuentran en el menú <strong>Bitácoras</strong> y registran la actividad de los usuarios.</p>
+    <ul>
+        <li><strong>Ingresos de usuario:</strong> hora de entrada y de salida de cada sesión, con la dirección IP.</li>
+        <li><strong>Movimientos de usuario:</strong> acciones realizadas (inserciones, modificaciones, cambios de estado, registros de tiempo, consultas, cambios de contraseña), con módulo, tipo y detalle.</li>
+    </ul>
+    <p>Puede filtrar por usuario, fechas y, en movimientos, por tipo y módulo. Se muestran 50 registros por página, de los más recientes a los más antiguos.</p>
+
+    <h2 id="soporte">11. Mensajes frecuentes</h2>
+    <ul>
+        <li><strong>"Su sesión expiró":</strong> pasaron más de 15 minutos sin actividad. Ingrese de nuevo.</li>
+        <li><strong>"No tiene permisos para acceder a esta funcionalidad":</strong> su rol no incluye esa opción. Consulte con el administrador.</li>
+        <li><strong>"Debe cambiar su contraseña temporal":</strong> cámbiela en Seguridad → Cambiar contraseña antes de continuar.</li>
+        <li><strong>"El usuario debe estar asignado a la tarea":</strong> solo quienes están asignados a una tarea pueden registrar tiempo en ella.</li>
+        <li><strong>"No se puede finalizar el proyecto":</strong> todavía hay tareas sin completar. Complételas o cámbielas de estado antes de finalizar.</li>
+    </ul>
+</div>

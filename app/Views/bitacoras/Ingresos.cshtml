@@ -1,0 +1,60 @@
+@model IngresosViewModel
+@{
+    ViewData["Title"] = "Bitácora de ingreso de usuarios";
+    var f = Model.Filtro;
+}
+<div class="card">
+    <form method="get" asp-action="Ingresos" class="filtros">
+        <div class="field">
+            <label for="IdUsuario">Usuario</label>
+            <select id="IdUsuario" name="IdUsuario">
+                <option value="">Todos</option>
+                @foreach (var o in (SelectList)ViewBag.Usuarios) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+            </select>
+        </div>
+        <div class="field">
+            <label for="Desde">Desde</label>
+            <input type="date" id="Desde" name="Desde" value="@f.Desde?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="field">
+            <label for="Hasta">Hasta</label>
+            <input type="date" id="Hasta" name="Hasta" value="@f.Hasta?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="form-actions">
+            <button type="submit" name="consultar" value="1" class="btn primary">Consultar</button>
+            <a asp-action="Ingresos" class="btn">Limpiar filtros</a>
+        </div>
+    </form>
+</div>
+
+@if (!Model.Filas.Any())
+{
+    <p class="muted">No se encontraron registros con esos criterios.</p>
+}
+else
+{
+    <div class="card"><div class="table-wrap">
+        <table class="grid">
+            <thead><tr><th>Id</th><th>Dirección IP</th><th>Usuario</th><th>Nombre</th><th>Entrada</th><th>Salida</th></tr></thead>
+            <tbody>
+            @foreach (var x in Model.Filas)
+            {
+                <tr>
+                    <td>@x.Id</td>
+                    <td>@x.Ip</td>
+                    <td>@x.Usuario</td>
+                    <td>@x.Nombre</td>
+                    <td>@x.Entrada.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>
+                        @if (x.Salida is DateTime s) { @s.ToString("dd/MM/yyyy HH:mm:ss") }
+                        else { <span class="pill off">Sin salida registrada</span> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Paginacion" model="Model.Paginacion" />
+    </div>
+    <p class="muted">Una sesión cerrada por inactividad o con el navegador cerrado queda sin hora de salida.</p>
+}

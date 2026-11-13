@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="~/assets/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/modulos.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/reportes.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/paginas.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/tareas.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/proyectos.css" asp-append-version="true" />
 </head>
 <body class="app">
 <aside class="sidebar">
@@ -17,14 +20,14 @@
         @if (Nivel("PROYECTOS") > 0)
         {
             <div class="nav-group">Proyectos</div>
-            @if (Nivel("PROYECTOS") == 2) { <a class="nav-sub" href="#">Crear proyecto</a> }
-            <a class="nav-sub" href="#">Ver proyectos</a>
+            @if (Nivel("PROYECTOS") == 2) { <a class="nav-sub" asp-controller="Proyectos" asp-action="Crear">Crear proyecto</a> }
+            <a class="nav-sub" asp-controller="Proyectos" asp-action="Index">Ver proyectos</a>
         }
         @if (Nivel("TAREAS") > 0)
         {
             <div class="nav-group">Tareas</div>
-            @if (Nivel("TAREAS") == 2) { <a class="nav-sub" href="#">Crear tarea</a> }
-            <a class="nav-sub" href="#">Ver tareas</a>
+            @if (Nivel("TAREAS") == 2) { <a class="nav-sub" asp-controller="Tareas" asp-action="Crear">Crear tarea</a> }
+            <a class="nav-sub" asp-controller="Tareas" asp-action="Index">Ver tareas</a>
         }
         @if (Nivel("REP_RENTABILIDAD") > 0 || Nivel("REP_TAREAS") > 0)
         {
@@ -38,8 +41,8 @@
         @if (Nivel("BITACORAS") > 0)
         {
             <div class="nav-group">Bitácoras</div>
-            <a class="nav-sub" href="#">Ingresos de usuario</a>
-            <a class="nav-sub" href="#">Movimientos de usuario</a>
+            <a class="nav-sub" asp-controller="Bitacoras" asp-action="Ingresos">Ingresos de usuario</a>
+            <a class="nav-sub" asp-controller="Bitacoras" asp-action="Movimientos">Movimientos de usuario</a>
         }
         @if (Nivel("USUARIOS") > 0 || Nivel("CLIENTES") > 0)
         {
@@ -47,8 +50,8 @@
             @if (Nivel("USUARIOS") > 0) { <a class="nav-sub" asp-controller="Usuarios" asp-action="Index">Usuarios</a> }
             @if (Nivel("CLIENTES") > 0) { <a class="nav-sub" asp-controller="Clientes" asp-action="Index">Clientes</a> }
         }
-        <a class="nav-item" href="#">Acerca de</a>
-        <a class="nav-item" href="#">Ayuda</a>
+        <a class="nav-item" asp-controller="Informacion" asp-action="AcercaDe">Acerca de</a>
+        <a class="nav-item" asp-controller="Informacion" asp-action="Ayuda">Ayuda</a>
     </nav>
     <form asp-controller="Auth" asp-action="Logout" method="post" class="logout">
         <button type="submit" class="nav-item">Cerrar sesión</button>

@@ -1,0 +1,6 @@
+/* Tareas. Provisional hasta aplicar los prototipos aprobados. */
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px 16px}
+.field .checks label.check{display:flex;flex-direction:row;align-items:center;gap:8px;font-weight:500;margin:0}
+.field input[readonly]{background:#F1F5F9}
+.dos-col .card{margin-top:0}
+.field textarea{font:inherit}

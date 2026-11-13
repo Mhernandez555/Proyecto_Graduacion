@@ -1,0 +1,12 @@
+@{ ViewData["Title"] = "Acerca de"; }
+<div class="card">
+    <dl class="ficha">
+        <dt>Acrónimo del sistema</dt><dd>@InfoSistema.Acronimo</dd>
+        <dt>Nombre del sistema</dt><dd>@InfoSistema.Nombre</dd>
+        <dt>Versión</dt><dd>@InfoSistema.Version</dd>
+        <dt>Fecha de versión</dt><dd>@InfoSistema.FechaVersion.ToString("dd/MM/yyyy")</dd>
+        <dt>Propietario</dt><dd>@InfoSistema.Propietario</dd>
+        <dt>Desarrollador</dt><dd>@InfoSistema.Desarrollador</dd>
+        <dt>Lenguaje de programación</dt><dd>@InfoSistema.Lenguaje</dd>
+    </dl>
+</div>

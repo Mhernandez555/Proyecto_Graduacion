@@ -1,0 +1,52 @@
+@model TareaViewModel
+@{
+    var nueva = Model.IdTarea == 0;
+    ViewData["Title"] = nueva ? "Nueva tarea" : $"Editar tarea {Model.Codigo}";
+    var usuarios = (List<OpcionUsuario>)ViewBag.Usuarios;
+}
+<div class="card">
+    <form asp-action="@(nueva ? "Crear" : "Editar")" asp-route-id="@(nueva ? null : Model.IdTarea)" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert"></div>
+        <div class="form-grid">
+            @if (!nueva)
+            {
+                <div class="field"><label>Código</label><input type="text" value="@Model.Codigo" readonly /></div>
+            }
+            <div class="field"><label asp-for="Nombre"></label><input asp-for="Nombre" /><span asp-validation-for="Nombre" class="field-error"></span></div>
+            <div class="field"><label asp-for="IdProyecto"></label>
+                <select asp-for="IdProyecto" asp-items="(SelectList)ViewBag.Proyectos"><option value="0">Seleccione el proyecto...</option></select>
+                <span asp-validation-for="IdProyecto" class="field-error"></span></div>
+            <div class="field"><label asp-for="IdCategoria"></label>
+                <select asp-for="IdCategoria" asp-items="(SelectList)ViewBag.Categorias"><option value="0">Seleccione la categoría...</option></select>
+                <span asp-validation-for="IdCategoria" class="field-error"></span></div>
+            <div class="field"><label asp-for="IdEstado"></label>
+                <select asp-for="IdEstado" asp-items="(SelectList)ViewBag.Estados"><option value="0">Seleccione el estado...</option></select>
+                <span asp-validation-for="IdEstado" class="field-error"></span></div>
+            <div class="field"><label for="FechaInicio">Fecha de inicio</label>
+                <input type="date" id="FechaInicio" name="FechaInicio" value="@Model.FechaInicio?.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="FechaInicio" class="field-error"></span></div>
+            <div class="field"><label for="FechaFin">Fecha de finalización</label>
+                <input type="date" id="FechaFin" name="FechaFin" value="@Model.FechaFin?.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="FechaFin" class="field-error"></span></div>
+            <div class="field"><label asp-for="TiempoEstimado"></label>
+                <input asp-for="TiempoEstimado" type="number" step="0.25" min="0" />
+                <span asp-validation-for="TiempoEstimado" class="field-error"></span></div>
+            <div class="field full"><label asp-for="Descripcion"></label><textarea asp-for="Descripcion" rows="3"></textarea><span asp-validation-for="Descripcion" class="field-error"></span></div>
+            <div class="field full"><label asp-for="Comentarios"></label><textarea asp-for="Comentarios" rows="3"></textarea><span asp-validation-for="Comentarios" class="field-error"></span></div>
+            <div class="field full">
+                <label>Usuarios asignados</label>
+                <div class="checks">
+                    @foreach (var o in usuarios)
+                    {
+                        <label class="check"><input type="checkbox" name="IdsUsuarios" value="@o.Id" checked="@Model.IdsUsuarios.Contains(o.Id)" /> @o.Texto</label>
+                    }
+                </div>
+                <span asp-validation-for="IdsUsuarios" class="field-error"></span>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn primary">@(nueva ? "Guardar" : "Actualizar")</button>
+            <a asp-action="Index" class="btn">Cancelar</a>
+        </div>
+    </form>
+</div>

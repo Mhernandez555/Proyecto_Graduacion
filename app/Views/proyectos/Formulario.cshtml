@@ -1,0 +1,44 @@
+@model ProyectoViewModel
+@{
+    var nuevo = Model.IdProyecto == 0;
+    ViewData["Title"] = nuevo ? "Nuevo proyecto" : $"Editar proyecto {Model.Codigo}";
+}
+<div class="card">
+    <form asp-action="@(nuevo ? "Crear" : "Editar")" asp-route-id="@(nuevo ? null : Model.IdProyecto)" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert"></div>
+        <div class="form-grid">
+            @if (!nuevo)
+            {
+                <div class="field"><label>Código</label><input type="text" value="@Model.Codigo" readonly /></div>
+            }
+            <div class="field"><label asp-for="Nombre"></label><input asp-for="Nombre" /><span asp-validation-for="Nombre" class="field-error"></span></div>
+            <div class="field"><label asp-for="IdCliente"></label>
+                <select asp-for="IdCliente" asp-items="(SelectList)ViewBag.Clientes"><option value="0">Seleccione el cliente...</option></select>
+                <span asp-validation-for="IdCliente" class="field-error"></span></div>
+            <div class="field"><label asp-for="IdCategoria"></label>
+                <select asp-for="IdCategoria" asp-items="(SelectList)ViewBag.Categorias"><option value="0">Seleccione la categoría...</option></select>
+                <span asp-validation-for="IdCategoria" class="field-error"></span></div>
+            <div class="field"><label asp-for="IdEstado"></label>
+                <select asp-for="IdEstado" asp-items="(SelectList)ViewBag.Estados"><option value="0">Seleccione el estado...</option></select>
+                <span asp-validation-for="IdEstado" class="field-error"></span></div>
+            <div class="field"><label asp-for="IdResponsable"></label>
+                <select asp-for="IdResponsable" asp-items="(SelectList)ViewBag.Responsables"><option value="0">Seleccione el responsable...</option></select>
+                <span asp-validation-for="IdResponsable" class="field-error"></span></div>
+            <div class="field"><label for="FechaInicio">Fecha de inicio</label>
+                <input type="date" id="FechaInicio" name="FechaInicio" value="@Model.FechaInicio?.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="FechaInicio" class="field-error"></span></div>
+            <div class="field"><label for="FechaFin">Fecha de finalización prevista</label>
+                <input type="date" id="FechaFin" name="FechaFin" value="@Model.FechaFin?.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="FechaFin" class="field-error"></span></div>
+            <div class="field"><label asp-for="PrecioVenta"></label>
+                <input asp-for="PrecioVenta" type="number" step="0.01" min="0" />
+                <span class="hint">Monto presupuestado. El costo y la rentabilidad se calculan solos con el tiempo registrado en las tareas.</span>
+                <span asp-validation-for="PrecioVenta" class="field-error"></span></div>
+            <div class="field full"><label asp-for="Descripcion"></label><textarea asp-for="Descripcion" rows="3"></textarea><span asp-validation-for="Descripcion" class="field-error"></span></div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn primary">@(nuevo ? "Guardar" : "Actualizar")</button>
+            <a asp-action="Index" class="btn">Cancelar</a>
+        </div>
+    </form>
+</div>

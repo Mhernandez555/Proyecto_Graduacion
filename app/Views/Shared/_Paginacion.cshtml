@@ -1,0 +1,15 @@
+@model Paginacion
+@{
+    var primera = Model.Pagina <= 1;
+    var ultima = Model.Pagina >= Model.TotalPaginas;
+}
+<div class="paginacion">
+    <span class="muted">Mostrando @(Model.Desde)–@(Model.Hasta) de @(Model.Total) registros</span>
+    <div class="links">
+        <a class="btn small @(primera ? "disabled" : "")" aria-disabled="@(primera ? "true" : "false")"
+           href="@Url.Action(Model.Accion, Model.Controlador, Model.Ruta(Model.Pagina - 1))">Anterior</a>
+        <span class="muted">Página @(Model.Pagina) de @(Model.TotalPaginas)</span>
+        <a class="btn small @(ultima ? "disabled" : "")" aria-disabled="@(ultima ? "true" : "false")"
+           href="@Url.Action(Model.Accion, Model.Controlador, Model.Ruta(Model.Pagina + 1))">Siguiente</a>
+    </div>
+</div>
