@@ -1,143 +1,104 @@
-@model TareaDetalleViewModel
+@model ProyectoDetalleViewModel
+@functions { bool Ve(string modulo) => int.TryParse(User.FindFirst("perm:" + modulo)?.Value, out var n) && n > 0; }
 @{
     ViewData["Title"] = $"{Model.Codigo} · {Model.Nombre}";
-    var eficiencia = Model.Registrado > 0 ? Formato.Porcentaje(Model.Estimado / Model.Registrado) : "—";
-    var hoy = DateTime.Today.ToString("yyyy-MM-dd");
-    var vencida = Model.Estado != "Completada" && Model.FechaFin is DateOnly ff && ff < DateOnly.FromDateTime(DateTime.Today);
+    var puedeCrearTarea = int.TryParse(User.FindFirst("perm:TAREAS")?.Value, out var nt) && nt >= 2
+                          && Model.Estado is not ("Finalizado" or "Cancelado");
 }
 <div class="page-head no-print">
-    <a asp-action="Index" class="btn">Volver a tareas</a>
-    @if (Model.PuedeEditar) { <a asp-action="Editar" asp-route-id="@Model.IdTarea" class="btn">Editar tarea</a> }
+    <a asp-action="Index" class="btn">Volver a proyectos</a>
+    @if (Model.PuedeEditar) { <a asp-action="Editar" asp-route-id="@Model.IdProyecto" class="btn">Editar proyecto</a> }
 </div>
+
+@if (Model.VerFinanzas)
+{
+    <div class="stats fin">
+        <div class="stat"><strong>@Formato.Dinero(Model.Precio)</strong><span>Precio de venta</span></div>
+        <div class="stat"><strong>@Formato.Dinero(Model.Costo)</strong><span>Costo acumulado</span></div>
+        <div class="stat @(Model.Rentabilidad < 0 ? "bad" : "")"><strong>@Formato.Dinero(Model.Rentabilidad)</strong><span>Rentabilidad</span></div>
+        <div class="stat @(Model.Margen is decimal mg && mg < 0 ? "bad" : "")"><strong>@Formato.Porcentaje(Model.Margen)</strong><span>Margen sobre el precio</span></div>
+    </div>
+}
 
 <div class="card">
     <dl class="ficha">
         <dt>Código</dt><dd>@Model.Codigo</dd>
-        <dt>Tarea</dt><dd>@Model.Nombre</dd>
+        <dt>Proyecto</dt><dd>@Model.Nombre</dd>
         <dt>Descripción</dt><dd>@(string.IsNullOrWhiteSpace(Model.Descripcion) ? "—" : Model.Descripcion)</dd>
-        <dt>Proyecto</dt><dd>@Model.Proyecto</dd>
+        <dt>Cliente</dt><dd>@Model.Cliente</dd>
         <dt>Categoría</dt><dd>@Model.Categoria</dd>
+        <dt>Responsable</dt><dd>@Model.Responsable</dd>
         <dt>Estado</dt><dd><span class="pill @Formato.ClaseEstado(Model.Estado)">@Model.Estado</span></dd>
         <dt>Inicio</dt><dd>@Formato.Fecha(Model.FechaInicio)</dd>
-        <dt>Finalización</dt><dd>@Formato.Fecha(Model.FechaFin) @if (vencida) { <span class="pill bad">Vencida</span> }</dd>
-        <dt>Asignados</dt><dd>@string.Join(", ", Model.Asignados.Select(a => a.Nombre))</dd>
-        <dt>Tiempo estimado</dt><dd>@Formato.Horas(Model.Estimado) h</dd>
-        <dt>Tiempo registrado</dt><dd>@Formato.Horas(Model.Registrado) h <span class="muted">(eficiencia: @eficiencia)</span></dd>
+        <dt>Finalización prevista</dt><dd>@Formato.Fecha(Model.FechaFin)</dd>
+        <dt>Avance</dt><dd>@(Model.Tareas.Count == 0 ? "Sin tareas" : $"{Model.TareasCompletadas} de {Model.Tareas.Count} tareas completadas")</dd>
     </dl>
 </div>
 
-<div class="dos-col">
-    <div class="card">
-        <h2 class="section-title">Estado y comentarios</h2>
-        <form asp-action="ActualizarEstado" asp-route-id="@Model.IdTarea" method="post">
+@if (Model.PuedeEditar)
+{
+    <div class="card narrow">
+        <h2 class="section-title">Cambiar estado</h2>
+        <form asp-action="CambiarEstado" asp-route-id="@Model.IdProyecto" method="post">
             <div class="field">
                 <label for="IdEstado">Estado</label>
                 <select id="IdEstado" name="IdEstado">
                     @foreach (var o in (SelectList)ViewBag.Estados) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
                 </select>
+                <span class="hint">Un proyecto solo se puede finalizar cuando todas sus tareas están completadas.</span>
             </div>
-            <div class="field">
-                <label for="Comentarios">Comentarios</label>
-                <textarea id="Comentarios" name="Comentarios" rows="4" maxlength="1000">@Model.Comentarios</textarea>
-                <span class="hint">Al pasar a "En proceso" o "Completada" se completa la fecha de inicio o de fin si estaba vacía.</span>
-            </div>
-            <div class="form-actions"><button type="submit" class="btn primary">Actualizar</button></div>
+            <div class="form-actions"><button type="submit" class="btn primary">Actualizar estado</button></div>
         </form>
     </div>
-
-    <div class="card">
-        <h2 class="section-title">Registrar tiempo</h2>
-        @if (!Model.Asignados.Any())
-        {
-            <p class="muted">La tarea no tiene usuarios asignados. Edite la tarea para asignarlos.</p>
-        }
-        else if (!Model.ElegirUsuario && !Model.EsAsignado)
-        {
-            <p class="muted">Solo los usuarios asignados pueden registrar tiempo.</p>
-        }
-        else
-        {
-            <form asp-action="RegistrarTiempo" asp-route-id="@Model.IdTarea" method="post">
-                @if (Model.ElegirUsuario)
-                {
-                    <div class="field">
-                        <label for="IdUsuario">Usuario</label>
-                        <select id="IdUsuario" name="IdUsuario">
-                            @foreach (var a in Model.Asignados)
-                            {
-                                <option value="@a.IdUsuario" selected="@(a.IdUsuario == Model.IdUsuarioActual)">@a.Nombre</option>
-                            }
-                        </select>
-                    </div>
-                }
-                <div class="field">
-                    <label for="Fecha">Fecha trabajada</label>
-                    <input type="date" id="Fecha" name="Fecha" value="@hoy" max="@hoy" required />
-                </div>
-                <div class="field">
-                    <label for="Horas">Horas</label>
-                    <input type="number" id="Horas" name="Horas" step="0.25" min="0.25" max="24" required />
-                    <span class="hint">Máximo 24 horas por día entre todas sus tareas.</span>
-                </div>
-                <div class="field">
-                    <label for="Comentario">Comentario</label>
-                    <input type="text" id="Comentario" name="Comentario" maxlength="500" />
-                </div>
-                <div class="form-actions"><button type="submit" class="btn primary">Registrar</button></div>
-            </form>
-        }
-    </div>
-</div>
+}
 
 <div class="card">
-    <h2 class="section-title">Tiempo registrado</h2>
-    @if (!Model.Registros.Any())
+    <div class="page-head">
+        <h2 class="section-title">@(Model.PuedeEditar ? "Tareas del proyecto" : "Mis tareas en el proyecto")</h2>
+        @if (puedeCrearTarea) { <a asp-controller="Tareas" asp-action="Crear" asp-route-idProyecto="@Model.IdProyecto" class="btn small">Nueva tarea en este proyecto</a> }
+    </div>
+    @if (!Model.Tareas.Any())
     {
-        <p class="muted">Todavía no hay tiempo registrado en esta tarea.</p>
+        <p class="muted">No hay tareas para mostrar.</p>
     }
     else
     {
         <div class="table-wrap"><table class="grid">
             <thead><tr>
-                <th>Fecha</th><th>Usuario</th><th class="num">Horas</th>
-                @if (Model.VerCostos) { <th class="num">Costo por hora</th><th class="num">Costo</th> }
-                <th>Comentario</th><th>Acciones</th>
+                <th>Código</th><th>Tarea</th><th>Categoría</th><th>Asignados</th><th>Estado</th><th>Inicio</th><th>Fin</th>
+                <th class="num">Estimado (h)</th><th class="num">Registrado (h)</th>
+                @if (Ve("TAREAS")) { <th>Acciones</th> }
             </tr></thead>
             <tbody>
-            @foreach (var r in Model.Registros)
+            @foreach (var t in Model.Tareas)
             {
                 <tr>
-                    <td>@Formato.Fecha(r.Fecha)</td>
-                    <td>@r.Usuario</td>
-                    <td class="num">@Formato.Horas(r.Horas)</td>
-                    @if (Model.VerCostos)
+                    <td>@t.Codigo</td>
+                    <td>@t.Nombre</td>
+                    <td>@t.Categoria</td>
+                    <td>@t.Asignados</td>
+                    <td><span class="pill @Formato.ClaseEstado(t.Estado)">@t.Estado</span></td>
+                    <td>@Formato.Fecha(t.FechaInicio)</td>
+                    <td>@Formato.Fecha(t.FechaFin) @if (t.Vencida) { <span class="pill bad">Vencida</span> }</td>
+                    <td class="num">@Formato.Horas(t.Estimado)</td>
+                    <td class="num">@Formato.Horas(t.Registrado)</td>
+                    @if (Ve("TAREAS"))
                     {
-                        <td class="num">@Formato.Dinero(r.CostoHora)</td>
-                        <td class="num">@Formato.Dinero(r.Costo)</td>
+                        <td class="acciones"><a class="btn small" asp-controller="Tareas" asp-action="Detalle" asp-route-id="@t.IdTarea">Consultar</a></td>
                     }
-                    <td>@r.Comentario</td>
-                    <td class="acciones">
-                        @if (r.PuedeEliminar)
-                        {
-                            <form asp-action="EliminarRegistro" asp-route-id="@Model.IdTarea" asp-route-idRegistro="@r.IdRegistro" method="post">
-                                <button type="submit" class="btn small" onclick="return confirm('¿Eliminar este registro de tiempo?')">Eliminar</button>
-                            </form>
-                        }
-                    </td>
                 </tr>
             }
             </tbody>
             <tfoot><tr>
-                <th colspan="2">Total</th>
-                <th class="num">@Formato.Horas(Model.Registrado)</th>
-                @if (Model.VerCostos)
-                {
-                    <th></th>
-                    <th class="num">@Formato.Dinero(Model.Registros.Sum(x => x.Costo))</th>
-                }
-                <th colspan="2"></th>
+                <th colspan="7">Total (@Model.Tareas.Count tareas)</th>
+                <th class="num">@Formato.Horas(Model.Tareas.Sum(x => x.Estimado))</th>
+                <th class="num">@Formato.Horas(Model.Tareas.Sum(x => x.Registrado))</th>
+                @if (Ve("TAREAS")) { <th></th> }
             </tr></tfoot>
         </table></div>
-        <p class="muted">El costo por hora queda guardado en cada registro, por lo que no cambia si luego se modifica la tarifa del usuario.</p>
     }
 </div>
+@if (Model.VerFinanzas)
+{
+    <p class="muted">Costo = horas registradas × costo por hora vigente al registrar. Rentabilidad = precio de venta − costo.</p>
+}

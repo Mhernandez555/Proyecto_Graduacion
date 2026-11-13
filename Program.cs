@@ -21,7 +21,10 @@ QuestPDF.Settings.License = LicenseType.Community;
 // Los archivos estáticos viven en public/ (no en wwwroot/)
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = args, WebRootPath = "public" });
 
-// La configuración vive en config/. Aquí se leen la cadena de conexión, el correo y demás ajustes.
+// Permite instalar la aplicación como servicio de Windows (si se ejecuta normal, no hace nada)
+builder.Host.UseWindowsService();
+
+// La configuración vive en config/. Aquí se leen la cadena de conexión, el correo, Kestrel (HTTPS) y demás ajustes.
 builder.Configuration
     .AddJsonFile("config/appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"config/appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
@@ -42,12 +45,15 @@ builder.Services.AddScoped<PermisoService>();
 builder.Services.AddScoped<BitacoraService>();
 builder.Services.AddScoped<ReporteService>();
 builder.Services.AddSingleton<CorreoService>();
+// Hora de salida de las sesiones cerradas por inactividad
+builder.Services.AddSingleton<ActividadSesionService>();
+builder.Services.AddHostedService<CierreSesionesService>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>
     {
         o.LoginPath = "/auth/login";
         o.AccessDeniedPath = "/auth/accesodenegado";
-        o.ExpireTimeSpan = TimeSpan.FromMinutes(15);   // cierre por inactividad (RF-006)
+        o.ExpireTimeSpan = TimeSpan.FromMinutes(SesionConfig.MinutosInactividad);   // cierre por inactividad (RF-006)
         o.SlidingExpiration = true;
         o.Cookie.HttpOnly = true;
         o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
@@ -60,6 +66,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
+app.UseMiddleware<ActividadSesionMiddleware>();
 app.UseAuthorization();
 app.MapControllerRoute("default", "{controller=Dashboard}/{action=Index}/{id?}");
 app.Run();

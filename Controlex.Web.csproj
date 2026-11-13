@@ -9,15 +9,23 @@
     <Compile Remove="test/**" />
     <Content Remove="test/**" />
     <None Remove="test/**" />
-  </ItemGroup>
-  <ItemGroup>
-    <!-- Evita compilar artefactos generados por builds anteriores dentro de app/. -->
-    <Compile Remove="app/obj/**;app/bin/**" />
-    <Content Remove="app/obj/**;app/bin/**" />
-    <None Remove="app/obj/**;app/bin/**" />
+    <!-- Las credenciales locales nunca viajan en la publicación -->
+    <Content Remove="config/appsettings.Development.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.0" />
     <PackageReference Include="QuestPDF" Version="2026.6.1" />
   </ItemGroup>
+
+  <!-- Al publicar, copia la configuración y los archivos estáticos (public/) junto a la aplicación -->
+  <Target Name="CopiarConfigYPublic" AfterTargets="Publish">
+    <ItemGroup>
+      <ArchivosConfig Include="config\appsettings.json" />
+      <ArchivosConfig Include="config\appsettings.Production.json" Condition="Exists('config\appsettings.Production.json')" />
+      <ArchivosPublic Include="public\**" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ArchivosConfig)" DestinationFolder="$(PublishDir)config" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ArchivosPublic)" DestinationFiles="@(ArchivosPublic->'$(PublishDir)public\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

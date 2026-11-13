@@ -47,7 +47,7 @@ else
                     <td>@x.Entrada.ToString("dd/MM/yyyy HH:mm:ss")</td>
                     <td>
                         @if (x.Salida is DateTime s) { @s.ToString("dd/MM/yyyy HH:mm:ss") }
-                        else { <span class="pill off">Sin salida registrada</span> }
+                        else { <span class="pill info">Sesión activa</span> }
                     </td>
                 </tr>
             }
@@ -56,5 +56,5 @@ else
     </div>
     <partial name="_Paginacion" model="Model.Paginacion" />
     </div>
-    <p class="muted">Una sesión cerrada por inactividad o con el navegador cerrado queda sin hora de salida.</p>
+    <p class="muted">Si una sesión se cierra por inactividad, su hora de salida es la de su última actividad más @Controlex.Web.Services.SesionConfig.MinutosInactividad minutos.</p>
 }
