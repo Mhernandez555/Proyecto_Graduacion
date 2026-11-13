@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Controlex.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+04f352f2da95d5401f15aa59743da028da87c510")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b7e9409bd56cbf67084ac44fd0263e38d7e7d5e5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Controlex.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Controlex.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
