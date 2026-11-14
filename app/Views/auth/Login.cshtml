@@ -5,32 +5,44 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0F172A" />
     <title>Iniciar sesión – CONTROLEX</title>
+    <link rel="icon" type="image/svg+xml" href="~/assets/images/wallred-logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/assets/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/modulos.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/marca.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/responsive.css" asp-append-version="true" />
 </head>
 <body class="login-page">
 <main class="login-card">
-    <div class="brand dark"><span class="brand-mark">C</span><span>CONTROLEX</span></div>
-    <h1>Iniciar sesión</h1>
-    @if (TempData["Mensaje"] is string mensaje) { <div class="flash ok" role="status">@mensaje</div> }
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="alert" role="alert">
-            @foreach (var e in ViewData.ModelState.SelectMany(x => x.Value!.Errors)) { <div>@e.ErrorMessage</div> }
-        </div>
-    }
-    <form asp-action="Login" method="post">
-        <label>@Html.DisplayNameFor(m => m.NombreUsuario)
-            <input asp-for="NombreUsuario" autocomplete="username" autofocus /></label>
-        <label>@Html.DisplayNameFor(m => m.Contrasena)
-            <input asp-for="Contrasena" type="password" autocomplete="current-password" /></label>
-        <div class="actions">
-            <button type="submit" class="btn primary">Iniciar sesión</button>
-            <button type="reset" class="btn">Cancelar</button>
-        </div>
-        <a asp-action="RecuperarContrasena" class="link">Recuperar contraseña</a>
-    </form>
+    <div class="login-head">
+        <img class="brand-logo" src="~/assets/images/wallred-logo.svg" alt="WallRed" width="56" height="56" />
+        <div class="brand-text"><strong>CONTROLEX</strong><small>Inteligencia de negocios · Licitaciones públicas</small></div>
+    </div>
+    <div class="login-body">
+        <h1>Iniciar sesión</h1>
+        @if (TempData["Mensaje"] is string mensaje) { <div class="flash ok" role="status">@mensaje</div> }
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert" role="alert">
+                @foreach (var e in ViewData.ModelState.SelectMany(x => x.Value!.Errors)) { <div>@e.ErrorMessage</div> }
+            </div>
+        }
+        <form asp-action="Login" method="post">
+            <label>@Html.DisplayNameFor(m => m.NombreUsuario)
+                <input asp-for="NombreUsuario" autocomplete="username" autofocus /></label>
+            <label>@Html.DisplayNameFor(m => m.Contrasena)
+                <input asp-for="Contrasena" type="password" autocomplete="current-password" /></label>
+            <div class="actions">
+                <button type="submit" class="btn primary">Iniciar sesión</button>
+                <button type="reset" class="btn">Cancelar</button>
+            </div>
+            <a asp-action="RecuperarContrasena" class="link">Recuperar contraseña</a>
+        </form>
+    </div>
 </main>
 </body>
 </html>

@@ -9,6 +9,7 @@
     <Compile Remove="test/**" />
     <Content Remove="test/**" />
     <None Remove="test/**" />
+    <Compile Remove="app/**/obj/**/*.cs;app/**/bin/**/*.cs" />
     <!-- Las credenciales locales nunca viajan en la publicación -->
     <Content Remove="config/appsettings.Development.json" />
   </ItemGroup>

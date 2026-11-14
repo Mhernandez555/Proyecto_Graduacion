@@ -4,17 +4,28 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0F172A" />
     <title>@ViewData["Title"] – CONTROLEX</title>
+    <link rel="icon" type="image/svg+xml" href="~/assets/images/wallred-logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/assets/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/modulos.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/reportes.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/paginas.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/tareas.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/proyectos.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/marca.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/responsive.css" asp-append-version="true" />
 </head>
 <body class="app">
-<aside class="sidebar">
-    <div class="brand"><span class="brand-mark">C</span><span>CONTROLEX</span></div>
+<div id="nav-overlay" class="nav-overlay"></div>
+<aside id="menu-lateral" class="sidebar">
+    <div class="brand">
+        <img class="brand-logo" src="~/assets/images/wallred-logo.svg" alt="WallRed" width="38" height="38" />
+        <span class="brand-text"><strong>CONTROLEX</strong><small>by WallRed</small></span>
+    </div>
     <nav>
         <a class="nav-item" asp-controller="Dashboard" asp-action="Index">Inicio</a>
         @if (Nivel("PROYECTOS") > 0)
@@ -59,6 +70,9 @@
 </aside>
 <div class="main">
     <header class="topbar">
+        <button type="button" id="menu-toggle" class="menu-toggle" aria-controls="menu-lateral" aria-expanded="false" aria-label="Abrir o cerrar el menú">
+            <span></span><span></span><span></span>
+        </button>
         <h1>@ViewData["Title"]</h1>
         <div class="user"><strong>@User.FindFirst("nombre_completo")?.Value</strong><span>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></div>
     </header>
@@ -68,5 +82,6 @@
         @RenderBody()
     </section>
 </div>
+<script src="~/assets/js/menu.js" asp-append-version="true" defer></script>
 </body>
 </html>

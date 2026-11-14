@@ -1,0 +1,60 @@
+/* Adaptación a celular (probado para ~400 px de ancho, como el Honor 90) y tableta. Se carga al final. */
+img{max-width:100%}
+
+/* Botón del menú (oculto en pantallas grandes) */
+.menu-toggle{display:none;flex-shrink:0;width:44px;height:44px;padding:0;border:1px solid var(--line);border-radius:10px;
+  background:#fff;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.menu-toggle span{display:block;width:20px;height:2px;background:var(--navy);border-radius:2px;transition:transform .2s,opacity .2s}
+.menu-abierto .menu-toggle span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.menu-abierto .menu-toggle span:nth-child(2){opacity:0}
+.menu-abierto .menu-toggle span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.nav-overlay{display:none}
+
+/* Tableta y celular: el menú lateral pasa a ser un panel desplegable */
+@media (max-width:900px){
+  .menu-toggle{display:flex}
+  .sidebar{position:fixed;top:0;bottom:0;left:0;width:272px;max-width:86vw;z-index:50;overflow-y:auto;
+    transform:translateX(-100%);visibility:hidden;transition:transform .2s ease,visibility 0s linear .2s}
+  .menu-abierto .sidebar{transform:none;visibility:visible;box-shadow:0 0 40px rgba(15,23,42,.45);
+    transition:transform .2s ease,visibility 0s}
+  .nav-overlay{display:block;position:fixed;inset:0;z-index:40;background:rgba(15,23,42,.5);
+    opacity:0;pointer-events:none;transition:opacity .2s ease}
+  .menu-abierto .nav-overlay{opacity:1;pointer-events:auto}
+  body.menu-abierto{overflow:hidden}
+  .nav-sub{padding:10px 12px 10px 26px}
+  .nav-item{padding:11px 12px}
+
+  .topbar{position:sticky;top:0;z-index:30;padding:10px 14px;gap:10px}
+  .topbar h1{flex:1;min-width:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .user span{display:none}
+  .user strong{max-width:120px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .content{padding:16px 14px}
+  .card{padding:16px}
+  .dos-col{grid-template-columns:1fr}
+}
+
+/* Celular */
+@media (max-width:600px){
+  .stats{grid-template-columns:repeat(2,1fr);gap:12px}
+  .stats.fin{grid-template-columns:1fr}
+  .stat{padding:14px}
+  .stat strong{font-size:24px}
+  .page-head{flex-wrap:wrap}
+  .form-actions{flex-wrap:wrap}
+  .form-actions .btn{flex:1 1 140px;justify-content:center}
+  .btn.small{min-height:40px;padding:8px 14px}
+  input,select,textarea,.field input,.field select,.field textarea{font-size:16px}
+  table.grid th,table.grid td{padding:8px 10px}
+  .paginacion{justify-content:center}
+
+  .login-page{align-items:flex-start;padding:12px}
+  .login-head{gap:12px;padding:18px 16px}
+  .login-head::after{width:76px}
+  .login-head .brand-logo{width:clamp(40px,14vw,52px)}
+  .login-head .brand-text{flex:1;padding-right:0}
+  .login-head .brand-text strong{font-size:clamp(18px,6vw,21px)}
+  .login-body{padding:22px 20px 26px}
+  .login-body input{width:100%}
+  .login-body .actions{flex-wrap:wrap}
+  .login-body .actions .btn{flex:1 1 120px;justify-content:center}
+}

@@ -196,12 +196,21 @@ public class TareasController(ControlexDbContext db, BitacoraService bitacora) :
     }
 
     // ---------- Crear y editar (acceso total) ----------
+    /// <summary>Si se llega desde un proyecto (idProyecto), la tarea queda ligada a ese proyecto de forma automática.</summary>
     [RequiereModulo("TAREAS", 2), HttpGet]
-    public async Task<IActionResult> Crear()
+    public async Task<IActionResult> Crear(int? idProyecto)
     {
         var pendiente = await db.Estados.Where(e => e.TipoEstado == "TAREA" && e.Nombre == "Pendiente")
             .Select(e => e.IdEstado).FirstOrDefaultAsync();
         var m = new TareaViewModel { IdEstado = pendiente };
+
+        if (idProyecto is int ip)
+        {
+            var estado = await db.Proyectos.Where(p => p.IdProyecto == ip).Select(p => p.EstadoActual.Nombre).FirstOrDefaultAsync();
+            if (estado is null) TempData["Error"] = "El proyecto indicado no existe.";
+            else if (estado is "Finalizado" or "Cancelado") TempData["Error"] = "El proyecto está finalizado o cancelado y no admite tareas nuevas.";
+            else m.IdProyecto = ip;
+        }
         await PrepararFormulario(m);
         return View("Formulario", m);
     }
