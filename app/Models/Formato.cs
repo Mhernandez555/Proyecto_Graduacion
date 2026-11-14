@@ -11,10 +11,11 @@ public static class Formato
         NumberGroupSizes = new[] { 3 }
     };
 
-    public static string Dinero(decimal v) => (v < 0 ? "-" : "") + "₡" + Math.Abs(v).ToString("N2", Nfi);
-    public static string Horas(decimal v) => v.ToString("N2", Nfi);
-    public static string Porcentaje(decimal? v) => v is null ? "—" : (v.Value * 100).ToString("N1", Nfi) + " %";
-    public static string Fecha(DateOnly? f) => f is null ? "—" : f.Value.ToString("dd/MM/yyyy");
+    public static string Dinero(decimal monto) => (monto < 0 ? "-" : "") + "₡" + Math.Abs(monto).ToString("N2", Nfi);
+    public static string Horas(decimal horas) => horas.ToString("N2", Nfi);
+    public static string Porcentaje(decimal? porcentaje) =>
+        porcentaje is null ? "—" : (porcentaje.Value * 100).ToString("N1", Nfi) + " %";
+    public static string Fecha(DateOnly? fecha) => fecha is null ? "—" : fecha.Value.ToString("dd/MM/yyyy");
     public static string ClaseEstado(string estado) => estado switch
     {
         "Completada" or "Finalizado" => "ok",

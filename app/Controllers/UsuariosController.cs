@@ -7,12 +7,19 @@ using Microsoft.EntityFrameworkCore;
 namespace Controlex.Web.Controllers;
 
 [RequiereModulo("USUARIOS", 1)]
-public class UsuariosController(ControlexDbContext db, BitacoraService bitacora) : Controller
+public class UsuariosController(ControlexDbContext contexto, BitacoraService bitacora) : Controller
 {
     private int IdActual => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    public async Task<IActionResult> Index() =>
-        View(await db.Usuarios.Include(u => u.Rol).OrderBy(u => u.Nombre).ThenBy(u => u.Apellido1).ToListAsync());
+    public async Task<IActionResult> Index(int pagina = 1)
+    {
+        var total = await contexto.Usuarios.CountAsync();
+        var paginacion = Paginacion.Crear("Usuarios", nameof(Index), pagina, total);
+        var usuarios = await contexto.Usuarios.AsNoTracking().Include(usuario => usuario.Rol)
+            .OrderBy(usuario => usuario.Nombre).ThenBy(usuario => usuario.Apellido1).ThenBy(usuario => usuario.IdUsuario)
+            .Skip((paginacion.Pagina - 1) * paginacion.Tam).Take(paginacion.Tam).ToListAsync();
+        return View(new UsuariosIndexViewModel { Filas = usuarios, Paginacion = paginacion });
+    }
 
     [HttpGet]
     public async Task<IActionResult> Crear()
@@ -22,23 +29,25 @@ public class UsuariosController(ControlexDbContext db, BitacoraService bitacora)
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Crear(UsuarioViewModel m)
+    public async Task<IActionResult> Crear(UsuarioViewModel modeloUsuario)
     {
-        if (string.IsNullOrEmpty(m.Contrasena)) ModelState.AddModelError(nameof(m.Contrasena), "Ingrese la contraseña.");
-        else if (PasswordPolicy.Validar(m.Contrasena) is { } err) ModelState.AddModelError(nameof(m.Contrasena), err);
-        await ValidarUnicos(m);
-        if (!ModelState.IsValid) { await CargarRoles(); return View("Formulario", m); }
+        if (string.IsNullOrEmpty(modeloUsuario.Contrasena)) ModelState.AddModelError(nameof(modeloUsuario.Contrasena), "Ingrese la contraseña.");
+        else if (PasswordPolicy.Validar(modeloUsuario.Contrasena) is { } error)
+            ModelState.AddModelError(nameof(modeloUsuario.Contrasena), error);
+        await ValidarUnicos(modeloUsuario);
+        if (!ModelState.IsValid) { await CargarRoles(); return View("Formulario", modeloUsuario); }
 
-        var u = new Usuario
+        var usuario = new Usuario
         {
-            Cedula = m.Cedula, Nombre = m.Nombre.Trim(), Apellido1 = m.Apellido1.Trim(), Apellido2 = m.Apellido2?.Trim(),
-            Correo = m.Correo.Trim(), IdRol = m.IdRol, NombreUsuario = m.NombreUsuario,
-            ContrasenaHash = PasswordHasher.Hash(m.Contrasena!), RequiereCambioContrasena = true,
-            CostoHora = m.CostoHora, Estado = m.Estado, FechaCreacion = DateTime.Now
+            Cedula = modeloUsuario.Cedula, Nombre = modeloUsuario.Nombre.Trim(),
+            Apellido1 = modeloUsuario.Apellido1.Trim(), Apellido2 = modeloUsuario.Apellido2?.Trim(),
+            Correo = modeloUsuario.Correo.Trim(), IdRol = modeloUsuario.IdRol, NombreUsuario = modeloUsuario.NombreUsuario,
+            ContrasenaHash = PasswordHasher.Hash(modeloUsuario.Contrasena!), RequiereCambioContrasena = true,
+            CostoHora = modeloUsuario.CostoHora, Estado = modeloUsuario.Estado, FechaCreacion = DateTime.Now
         };
-        db.Usuarios.Add(u);
-        await db.SaveChangesAsync();
-        await bitacora.MovimientoAsync(IdActual, "USUARIOS", "INSERCIÓN", $"Usuario creado: {u.NombreUsuario}");
+        contexto.Usuarios.Add(usuario);
+        await contexto.SaveChangesAsync();
+        await bitacora.MovimientoAsync(IdActual, "USUARIOS", "INSERCIÓN", $"Usuario creado: {usuario.NombreUsuario}");
 
         TempData["Mensaje"] = "Usuario creado. Deberá cambiar su contraseña en el primer ingreso.";
         return RedirectToAction(nameof(Index));
@@ -47,35 +56,44 @@ public class UsuariosController(ControlexDbContext db, BitacoraService bitacora)
     [HttpGet]
     public async Task<IActionResult> Editar(int id)
     {
-        var u = await db.Usuarios.FindAsync(id);
-        if (u is null) return NotFound();
+        var usuario = await contexto.Usuarios.FindAsync(id);
+        if (usuario is null) return NotFound();
         await CargarRoles();
         return View("Formulario", new UsuarioViewModel
         {
-            IdUsuario = u.IdUsuario, Cedula = u.Cedula, Nombre = u.Nombre, Apellido1 = u.Apellido1, Apellido2 = u.Apellido2,
-            Correo = u.Correo, IdRol = u.IdRol, NombreUsuario = u.NombreUsuario, CostoHora = u.CostoHora, Estado = u.Estado
+            IdUsuario = usuario.IdUsuario, Cedula = usuario.Cedula, Nombre = usuario.Nombre,
+            Apellido1 = usuario.Apellido1, Apellido2 = usuario.Apellido2,
+            Correo = usuario.Correo, IdRol = usuario.IdRol, NombreUsuario = usuario.NombreUsuario,
+            CostoHora = usuario.CostoHora, Estado = usuario.Estado
         });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Editar(int id, UsuarioViewModel m)
+    public async Task<IActionResult> Editar(int id, UsuarioViewModel modeloUsuario)
     {
-        m.IdUsuario = id;
-        var u = await db.Usuarios.FindAsync(id);
-        if (u is null) return NotFound();
+        modeloUsuario.IdUsuario = id;
+        var usuario = await contexto.Usuarios.FindAsync(id);
+        if (usuario is null) return NotFound();
 
-        var cambiaClave = !string.IsNullOrEmpty(m.Contrasena);
-        if (cambiaClave && PasswordPolicy.Validar(m.Contrasena!) is { } err) ModelState.AddModelError(nameof(m.Contrasena), err);
-        if (id == IdActual && !m.Estado) ModelState.AddModelError(nameof(m.Estado), "No puede inhabilitar su propio usuario.");
-        await ValidarUnicos(m);
-        if (!ModelState.IsValid) { await CargarRoles(); return View("Formulario", m); }
+        var cambiaClave = !string.IsNullOrEmpty(modeloUsuario.Contrasena);
+        if (cambiaClave && PasswordPolicy.Validar(modeloUsuario.Contrasena!) is { } error)
+            ModelState.AddModelError(nameof(modeloUsuario.Contrasena), error);
+        if (id == IdActual && !modeloUsuario.Estado)
+            ModelState.AddModelError(nameof(modeloUsuario.Estado), "No puede inhabilitar su propio usuario.");
+        await ValidarUnicos(modeloUsuario);
+        if (!ModelState.IsValid) { await CargarRoles(); return View("Formulario", modeloUsuario); }
 
-        u.Cedula = m.Cedula; u.Nombre = m.Nombre.Trim(); u.Apellido1 = m.Apellido1.Trim(); u.Apellido2 = m.Apellido2?.Trim();
-        u.Correo = m.Correo.Trim(); u.IdRol = m.IdRol; u.NombreUsuario = m.NombreUsuario;
-        u.CostoHora = m.CostoHora; u.Estado = m.Estado;
-        if (cambiaClave) { u.ContrasenaHash = PasswordHasher.Hash(m.Contrasena!); u.RequiereCambioContrasena = true; }
-        await db.SaveChangesAsync();
-        await bitacora.MovimientoAsync(IdActual, "USUARIOS", "MODIFICACIÓN", $"Usuario modificado: {u.NombreUsuario}");
+        usuario.Cedula = modeloUsuario.Cedula; usuario.Nombre = modeloUsuario.Nombre.Trim();
+        usuario.Apellido1 = modeloUsuario.Apellido1.Trim(); usuario.Apellido2 = modeloUsuario.Apellido2?.Trim();
+        usuario.Correo = modeloUsuario.Correo.Trim(); usuario.IdRol = modeloUsuario.IdRol; usuario.NombreUsuario = modeloUsuario.NombreUsuario;
+        usuario.CostoHora = modeloUsuario.CostoHora; usuario.Estado = modeloUsuario.Estado;
+        if (cambiaClave)
+        {
+            usuario.ContrasenaHash = PasswordHasher.Hash(modeloUsuario.Contrasena!);
+            usuario.RequiereCambioContrasena = true;
+        }
+        await contexto.SaveChangesAsync();
+        await bitacora.MovimientoAsync(IdActual, "USUARIOS", "MODIFICACIÓN", $"Usuario modificado: {usuario.NombreUsuario}");
 
         TempData["Mensaje"] = "Usuario actualizado.";
         return RedirectToAction(nameof(Index));
@@ -84,29 +102,34 @@ public class UsuariosController(ControlexDbContext db, BitacoraService bitacora)
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> CambiarEstado(int id)
     {
-        var u = await db.Usuarios.FindAsync(id);
-        if (u is null) return NotFound();
+        var usuario = await contexto.Usuarios.FindAsync(id);
+        if (usuario is null) return NotFound();
         if (id == IdActual) { TempData["Error"] = "No puede inhabilitar su propio usuario."; return RedirectToAction(nameof(Index)); }
 
-        u.Estado = !u.Estado;
-        await db.SaveChangesAsync();
-        await bitacora.MovimientoAsync(IdActual, "USUARIOS", u.Estado ? "HABILITACIÓN" : "INHABILITACIÓN", $"Usuario: {u.NombreUsuario}");
-        TempData["Mensaje"] = u.Estado ? "Usuario habilitado." : "Usuario inhabilitado.";
+        usuario.Estado = !usuario.Estado;
+        await contexto.SaveChangesAsync();
+        await bitacora.MovimientoAsync(IdActual, "USUARIOS", usuario.Estado ? "HABILITACIÓN" : "INHABILITACIÓN", $"Usuario: {usuario.NombreUsuario}");
+        TempData["Mensaje"] = usuario.Estado ? "Usuario habilitado." : "Usuario inhabilitado.";
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task ValidarUnicos(UsuarioViewModel m)
+    private async Task ValidarUnicos(UsuarioViewModel modeloUsuario)
     {
-        if (await db.Usuarios.AnyAsync(x => x.Cedula == m.Cedula && x.IdUsuario != m.IdUsuario))
-            ModelState.AddModelError(nameof(m.Cedula), "Ya existe un usuario con esa cédula.");
-        if (await db.Usuarios.AnyAsync(x => x.Correo == m.Correo && x.IdUsuario != m.IdUsuario))
-            ModelState.AddModelError(nameof(m.Correo), "Ya existe un usuario con ese correo.");
-        if (await db.Usuarios.AnyAsync(x => x.NombreUsuario == m.NombreUsuario && x.IdUsuario != m.IdUsuario))
-            ModelState.AddModelError(nameof(m.NombreUsuario), "Ese nombre de usuario ya está en uso.");
-        if (m.IdRol > 0 && !await db.Roles.AnyAsync(r => r.IdRol == m.IdRol && r.Estado))
-            ModelState.AddModelError(nameof(m.IdRol), "Seleccione un rol activo.");
+        if (await contexto.Usuarios.AnyAsync(usuario =>
+                usuario.Cedula == modeloUsuario.Cedula && usuario.IdUsuario != modeloUsuario.IdUsuario))
+            ModelState.AddModelError(nameof(modeloUsuario.Cedula), "Ya existe un usuario con esa cédula.");
+        if (await contexto.Usuarios.AnyAsync(usuario =>
+                usuario.Correo == modeloUsuario.Correo && usuario.IdUsuario != modeloUsuario.IdUsuario))
+            ModelState.AddModelError(nameof(modeloUsuario.Correo), "Ya existe un usuario con ese correo.");
+        if (await contexto.Usuarios.AnyAsync(usuario =>
+                usuario.NombreUsuario == modeloUsuario.NombreUsuario && usuario.IdUsuario != modeloUsuario.IdUsuario))
+            ModelState.AddModelError(nameof(modeloUsuario.NombreUsuario), "Ese nombre de usuario ya está en uso.");
+        if (modeloUsuario.IdRol > 0 &&
+            !await contexto.Roles.AnyAsync(rol => rol.IdRol == modeloUsuario.IdRol && rol.Estado))
+            ModelState.AddModelError(nameof(modeloUsuario.IdRol), "Seleccione un rol activo.");
     }
 
     private async Task CargarRoles() =>
-        ViewBag.Roles = new SelectList(await db.Roles.Where(r => r.Estado).OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol");
+        ViewBag.Roles = new SelectList(await contexto.Roles.Where(rol => rol.Estado)
+            .OrderBy(rol => rol.NombreRol).ToListAsync(), "IdRol", "NombreRol");
 }

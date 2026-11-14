@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 namespace Controlex.Web.Data;
 
-public class ControlexDbContext(DbContextOptions<ControlexDbContext> options) : DbContext(options)
+public class ControlexDbContext(DbContextOptions<ControlexDbContext> opciones) : DbContext(opciones)
 {
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<Permiso> Permisos => Set<Permiso>();

@@ -11,14 +11,14 @@
             <label for="idProyecto">Proyecto</label>
             <select id="idProyecto" name="idProyecto">
                 <option value="">Todos</option>
-                @foreach (var o in (SelectList)ViewBag.Proyectos) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+                @foreach (var opcion in (SelectList)ViewBag.Proyectos) { <option value="@opcion.Value" selected="@opcion.Selected">@opcion.Text</option> }
             </select>
         </div>
         <div class="field">
             <label for="idEstado">Estado</label>
             <select id="idEstado" name="idEstado">
                 <option value="">Todos</option>
-                @foreach (var o in (SelectList)ViewBag.Estados) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+                @foreach (var opcion in (SelectList)ViewBag.Estados) { <option value="@opcion.Value" selected="@opcion.Selected">@opcion.Text</option> }
             </select>
         </div>
         @if (Model.Total)
@@ -27,7 +27,7 @@
                 <label for="idUsuario">Usuario asignado</label>
                 <select id="idUsuario" name="idUsuario">
                     <option value="">Todos</option>
-                    @foreach (var o in (SelectList)ViewBag.Usuarios) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+                    @foreach (var opcion in (SelectList)ViewBag.Usuarios) { <option value="@opcion.Value" selected="@opcion.Selected">@opcion.Text</option> }
                 </select>
             </div>
         }
@@ -51,33 +51,30 @@ else
                 <th>Inicio</th><th>Fin</th><th class="num">Estimado (h)</th><th class="num">Registrado (h)</th><th>Acciones</th>
             </tr></thead>
             <tbody>
-            @foreach (var t in Model.Filas)
+            @foreach (var tarea in Model.Filas)
             {
                 <tr>
-                    <td>@t.Codigo</td>
-                    <td>@t.Nombre</td>
-                    <td>@t.Proyecto</td>
-                    <td>@t.Categoria</td>
-                    <td>@t.Asignados</td>
-                    <td><span class="pill @Formato.ClaseEstado(t.Estado)">@t.Estado</span></td>
-                    <td>@Formato.Fecha(t.FechaInicio)</td>
+                    <td>@tarea.Codigo</td>
+                    <td>@tarea.Nombre</td>
+                    <td>@tarea.Proyecto</td>
+                    <td>@tarea.Categoria</td>
+                    <td>@tarea.Asignados</td>
+                    <td><span class="pill @Formato.ClaseEstado(tarea.Estado)">@tarea.Estado</span></td>
+                    <td>@Formato.Fecha(tarea.FechaInicio)</td>
                     <td>
-                        @Formato.Fecha(t.FechaFin)
-                        @if (t.Vencida) { <span class="pill bad">Vencida</span> }
+                        @Formato.Fecha(tarea.FechaFin)
+                        @if (tarea.Vencida) { <span class="pill bad">Vencida</span> }
                     </td>
-                    <td class="num">@Formato.Horas(t.Estimado)</td>
-                    <td class="num">@Formato.Horas(t.Registrado)</td>
+                    <td class="num">@Formato.Horas(tarea.Estimado)</td>
+                    <td class="num">@Formato.Horas(tarea.Registrado)</td>
                     <td class="acciones">
-                        <a class="btn small" asp-action="Detalle" asp-route-id="@t.IdTarea">Consultar</a>
-                        @if (Model.Total) { <a class="btn small" asp-action="Editar" asp-route-id="@t.IdTarea">Editar</a> }
+                        <a class="btn small" asp-action="Detalle" asp-route-id="@tarea.IdTarea">Consultar</a>
+                        @if (Model.Total) { <a class="btn small" asp-action="Editar" asp-route-id="@tarea.IdTarea">Editar</a> }
                     </td>
                 </tr>
             }
             </tbody>
         </table>
     </div></div>
-    @if (Model.HayMas)
-    {
-        <p class="muted">Se muestran las primeras @Model.Limite tareas. Use los filtros para acotar la lista.</p>
-    }
+    <partial name="_Paginacion" model="Model.Paginacion" />
 }

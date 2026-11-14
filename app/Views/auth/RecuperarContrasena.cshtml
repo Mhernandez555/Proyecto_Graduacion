@@ -28,13 +28,13 @@
         @if (!ViewData.ModelState.IsValid)
         {
             <div class="alert" role="alert">
-                @foreach (var e in ViewData.ModelState.SelectMany(x => x.Value!.Errors)) { <div>@e.ErrorMessage</div> }
+                @foreach (var errorModelo in ViewData.ModelState.SelectMany(estado => estado.Value!.Errors)) { <div>@errorModelo.ErrorMessage</div> }
             </div>
         }
         <form asp-action="RecuperarContrasena" method="post">
-            <label>@Html.DisplayNameFor(m => m.NombreUsuario)
+            <label>@Html.DisplayNameFor(modelo => modelo.NombreUsuario)
                 <input asp-for="NombreUsuario" autocomplete="username" autofocus /></label>
-            <label>@Html.DisplayNameFor(m => m.Cedula)
+            <label>@Html.DisplayNameFor(modelo => modelo.Cedula)
                 <input asp-for="Cedula" inputmode="numeric" /></label>
             <div class="actions">
                 <button type="submit" class="btn primary">Recuperar</button>

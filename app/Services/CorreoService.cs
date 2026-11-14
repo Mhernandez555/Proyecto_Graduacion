@@ -3,26 +3,26 @@ using System.Net.Mail;
 namespace Controlex.Web.Services;
 
 /// <summary>Envío de correo por SMTP. Configuración en la sección "Correo" de config/appsettings.Development.json.</summary>
-public class CorreoService(IConfiguration config)
+public class CorreoService(IConfiguration configuracion)
 {
-    public async Task EnviarAsync(string para, string asunto, string cuerpo)
+    public async Task EnviarAsync(string destinatario, string asunto, string cuerpo)
     {
-        var s = config.GetSection("Correo");
-        var host = s["Host"];
-        if (string.IsNullOrWhiteSpace(host))
+        var configuracionCorreo = configuracion.GetSection("Correo");
+        var servidor = configuracionCorreo["Host"];
+        if (string.IsNullOrWhiteSpace(servidor))
             throw new InvalidOperationException("El envío de correo no está configurado (sección Correo).");
 
-        using var smtp = new SmtpClient(host, s.GetValue("Puerto", 587))
+        using var clienteSmtp = new SmtpClient(servidor, configuracionCorreo.GetValue("Puerto", 587))
         {
-            EnableSsl = s.GetValue("UsarSsl", true),
-            Credentials = new NetworkCredential(s["Usuario"], s["Clave"])
+            EnableSsl = configuracionCorreo.GetValue("UsarSsl", true),
+            Credentials = new NetworkCredential(configuracionCorreo["Usuario"], configuracionCorreo["Clave"])
         };
-        var remitente = s["Remitente"] ?? s["Usuario"] ?? "";
-        using var mensaje = new MailMessage(new MailAddress(remitente, "CONTROLEX"), new MailAddress(para))
+        var remitente = configuracionCorreo["Remitente"] ?? configuracionCorreo["Usuario"] ?? "";
+        using var mensaje = new MailMessage(new MailAddress(remitente, "CONTROLEX"), new MailAddress(destinatario))
         {
             Subject = asunto,
             Body = cuerpo
         };
-        await smtp.SendMailAsync(mensaje);
+        await clienteSmtp.SendMailAsync(mensaje);
     }
 }

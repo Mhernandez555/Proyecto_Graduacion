@@ -12,8 +12,10 @@ Deja CONTROLEX funcionando en un equipo de WallRed, con HTTPS (RF-021) y como se
 En SSMS, contra el servidor de WallRed y en este orden:
 1. `CONTROLEX_DB.sql` (Entregable 4): tablas, vista de rentabilidad y datos iniciales.
 2. `database/sql/003_ultima_actividad_sesion.sql`.
-3. **No** ejecutar `002_datos_prueba_reportes.sql` (son datos ficticios).
-4. Crear el login que usará la aplicación (cambie la clave):
+3. `database/sql/004_motivo_salida_sesion.sql`.
+4. `database/sql/005_direccion_ip_ipv6.sql`.
+5. **No** ejecutar `002_datos_prueba_reportes.sql` (son datos ficticios).
+6. Crear el login que usará la aplicación (cambie la clave):
    ```sql
    CREATE LOGIN controlex_app WITH PASSWORD = 'UnaClaveLargaYUnica1!', CHECK_POLICY = OFF;
    GO
@@ -24,7 +26,7 @@ En SSMS, contra el servidor de WallRed y en este orden:
    ALTER ROLE db_datawriter ADD MEMBER controlex_app;
    ```
    El servidor debe tener activado el modo "SQL Server and Windows Authentication" (y reiniciado el servicio).
-5. Clave del administrador inicial: en el equipo donde está publicada la aplicación,
+7. Clave del administrador inicial: en el equipo donde está publicada la aplicación,
    ```
    C:\controlex\app\Controlex.Web.exe hash "ClaveTemporal1!"
    ```
@@ -45,6 +47,7 @@ Copie la carpeta `C:\controlex\app` al servidor (misma ruta). Debe contener `Con
 1. En el servidor, copie `config\appsettings.Production.example.json` como `config\appsettings.Production.json`.
 2. Complete la cadena de conexión (servidor, base `CONTROLEX_DB`, usuario `controlex_app` y su clave), la sección `Correo` y la ruta del certificado.
 3. Este archivo no se sube a Git. Si la clave de SQL cambia, se cambia solo ahí.
+4. Si se publica detrás de un proxy inverso, agregue su IP exacta a `Red:ProxiesConfiables` en `appsettings.Production.json` y configure el proxy para enviar `X-Forwarded-For` y `X-Forwarded-Proto`. No agregue IPs de clientes ni rangos no confiables. En la instalación directa con Kestrel, deje la lista vacía.
 
 ## 5. Certificado HTTPS (red interna)
 En PowerShell como administrador. Use como nombre el que los usuarios escribirán en el navegador (ejemplo `controlex.wallred.local`):
@@ -106,4 +109,4 @@ Guarde una copia fuera del servidor.
 | El navegador avisa que el sitio no es seguro | El certificado no está instalado en ese equipo o se entró por IP y no por el nombre. |
 | No carga desde otros equipos | Falta la regla de firewall del puerto 443 o el nombre no se resuelve (agregarlo al DNS o al archivo hosts). |
 | No llegan los correos de recuperación | Revise la sección `Correo`. Con Gmail se necesita una "contraseña de aplicación". |
-| Las sesiones no registran salida | No se ejecutó `003_ultima_actividad_sesion.sql`. |
+| Las sesiones no registran salida | Verifique que se ejecutaron `003_ultima_actividad_sesion.sql` y `004_motivo_salida_sesion.sql`, y revise el Visor de eventos → Aplicación. El cierre de una pestaña no notifica al servidor: se registra como inactividad después de 15 minutos. |

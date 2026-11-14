@@ -9,86 +9,104 @@ namespace Controlex.Web.Controllers;
 
 /// <summary>Consulta de bitácoras (RF-007, RF-011, RF-012). Al abrir se muestran los últimos registros.</summary>
 [RequiereModulo("BITACORAS", 1)]
-public class BitacorasController(ControlexDbContext db, BitacoraService bitacora) : Controller
+public class BitacorasController(ControlexDbContext contexto, BitacoraService bitacora) : Controller
 {
-    private const int Tam = 50;
     private int IdActual => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     // ---------- RF-011: ingresos y salidas ----------
-    public async Task<IActionResult> Ingresos(IngresosFiltro f, string? consultar)
+    public async Task<IActionResult> Ingresos(IngresosFiltro filtro, string? consultar)
     {
-        var q = from b in db.BitacoraIngresos.AsNoTracking()
-                join u in db.Usuarios.AsNoTracking() on b.IdUsuario equals u.IdUsuario
-                select new { b, u };
-        if (f.IdUsuario is int id) q = q.Where(x => x.b.IdUsuario == id);
-        if (f.Desde is DateTime d) { var desde = d.Date; q = q.Where(x => x.b.FechaHoraEntrada >= desde); }
-        if (f.Hasta is DateTime h) { var hasta = h.Date.AddDays(1); q = q.Where(x => x.b.FechaHoraEntrada < hasta); }
+        var consulta = from ingreso in contexto.BitacoraIngresos.AsNoTracking()
+                       join usuario in contexto.Usuarios.AsNoTracking() on ingreso.IdUsuario equals usuario.IdUsuario
+                       select new { ingreso, usuario };
+        if (filtro.IdUsuario is int idUsuario) consulta = consulta.Where(registro => registro.ingreso.IdUsuario == idUsuario);
+        if (filtro.Desde is DateTime fechaInicial)
+        {
+            var fechaDesde = fechaInicial.Date;
+            consulta = consulta.Where(registro => registro.ingreso.FechaHoraEntrada >= fechaDesde);
+        }
+        if (filtro.Hasta is DateTime fechaFinal)
+        {
+            var fechaHasta = fechaFinal.Date.AddDays(1);
+            consulta = consulta.Where(registro => registro.ingreso.FechaHoraEntrada < fechaHasta);
+        }
 
-        var pag = new Paginacion { Accion = nameof(Ingresos), Tam = Tam, Total = await q.CountAsync(), Filtros = Ruta(f.IdUsuario, f.Desde, f.Hasta) };
-        pag.Pagina = Math.Clamp(f.Pagina, 1, pag.TotalPaginas);
+        var paginacion = Paginacion.Crear("Bitacoras", nameof(Ingresos), filtro.Pagina,
+            await consulta.CountAsync(), Ruta(filtro.IdUsuario, filtro.Desde, filtro.Hasta));
 
-        var filas = await q.OrderByDescending(x => x.b.FechaHoraEntrada).ThenByDescending(x => x.b.IdBitacoraIngreso)
-            .Skip((pag.Pagina - 1) * Tam).Take(Tam)
-            .Select(x => new FilaIngreso(x.b.IdBitacoraIngreso, x.b.DireccionIp, x.u.NombreUsuario,
-                x.u.Nombre + " " + x.u.Apellido1, x.b.FechaHoraEntrada, x.b.FechaHoraSalida))
+        var filas = await consulta.OrderByDescending(registro => registro.ingreso.FechaHoraEntrada)
+            .ThenByDescending(registro => registro.ingreso.IdBitacoraIngreso)
+            .Skip((paginacion.Pagina - 1) * paginacion.Tam).Take(paginacion.Tam)
+            .Select(registro => new FilaIngreso(registro.ingreso.IdBitacoraIngreso, registro.ingreso.DireccionIp,
+                registro.usuario.NombreUsuario, registro.usuario.Nombre + " " + registro.usuario.Apellido1,
+                registro.ingreso.FechaHoraEntrada, registro.ingreso.FechaHoraSalida, registro.ingreso.MotivoSalida))
             .ToListAsync();
 
         if (consultar is not null)
             await bitacora.MovimientoAsync(IdActual, "BITACORAS", "CONSULTA", "Bitácora de ingresos");
-        await CargarUsuarios(f.IdUsuario);
-        return View(new IngresosViewModel { Filtro = f, Filas = filas, Paginacion = pag });
+        await CargarUsuarios(filtro.IdUsuario);
+        return View(new IngresosViewModel { Filtro = filtro, Filas = filas, Paginacion = paginacion });
     }
 
     // ---------- RF-012: movimientos ----------
-    public async Task<IActionResult> Movimientos(MovimientosFiltro f, string? consultar)
+    public async Task<IActionResult> Movimientos(MovimientosFiltro filtro, string? consultar)
     {
-        var q = from m in db.BitacoraMovimientos.AsNoTracking()
-                join u in db.Usuarios.AsNoTracking() on m.IdUsuario equals u.IdUsuario
-                select new { m, u };
-        if (f.IdUsuario is int id) q = q.Where(x => x.m.IdUsuario == id);
-        if (!string.IsNullOrEmpty(f.TipoMovimiento)) q = q.Where(x => x.m.TipoMovimiento == f.TipoMovimiento);
-        if (!string.IsNullOrEmpty(f.Modulo)) q = q.Where(x => x.m.Modulo == f.Modulo);
-        if (f.Desde is DateTime d) { var desde = d.Date; q = q.Where(x => x.m.FechaHora >= desde); }
-        if (f.Hasta is DateTime h) { var hasta = h.Date.AddDays(1); q = q.Where(x => x.m.FechaHora < hasta); }
-
-        var pag = new Paginacion
+        var consulta = from movimiento in contexto.BitacoraMovimientos.AsNoTracking()
+                       join usuario in contexto.Usuarios.AsNoTracking() on movimiento.IdUsuario equals usuario.IdUsuario
+                       select new { movimiento, usuario };
+        if (filtro.IdUsuario is int idUsuario) consulta = consulta.Where(registro => registro.movimiento.IdUsuario == idUsuario);
+        if (!string.IsNullOrEmpty(filtro.TipoMovimiento))
+            consulta = consulta.Where(registro => registro.movimiento.TipoMovimiento == filtro.TipoMovimiento);
+        if (!string.IsNullOrEmpty(filtro.Modulo))
+            consulta = consulta.Where(registro => registro.movimiento.Modulo == filtro.Modulo);
+        if (filtro.Desde is DateTime fechaInicial)
         {
-            Accion = nameof(Movimientos), Tam = Tam, Total = await q.CountAsync(),
-            Filtros = Ruta(f.IdUsuario, f.Desde, f.Hasta, f.TipoMovimiento, f.Modulo)
-        };
-        pag.Pagina = Math.Clamp(f.Pagina, 1, pag.TotalPaginas);
+            var fechaDesde = fechaInicial.Date;
+            consulta = consulta.Where(registro => registro.movimiento.FechaHora >= fechaDesde);
+        }
+        if (filtro.Hasta is DateTime fechaFinal)
+        {
+            var fechaHasta = fechaFinal.Date.AddDays(1);
+            consulta = consulta.Where(registro => registro.movimiento.FechaHora < fechaHasta);
+        }
 
-        var filas = await q.OrderByDescending(x => x.m.FechaHora).ThenByDescending(x => x.m.IdMovimiento)
-            .Skip((pag.Pagina - 1) * Tam).Take(Tam)
-            .Select(x => new FilaMovimiento(x.m.IdMovimiento, x.m.DireccionIp, x.u.NombreUsuario,
-                x.u.Nombre + " " + x.u.Apellido1, x.m.FechaHora, x.m.Modulo, x.m.TipoMovimiento, x.m.Detalle))
+        var paginacion = Paginacion.Crear("Bitacoras", nameof(Movimientos), filtro.Pagina,
+            await consulta.CountAsync(), Ruta(filtro.IdUsuario, filtro.Desde, filtro.Hasta, filtro.TipoMovimiento, filtro.Modulo));
+
+        var filas = await consulta.OrderByDescending(registro => registro.movimiento.FechaHora)
+            .ThenByDescending(registro => registro.movimiento.IdMovimiento)
+            .Skip((paginacion.Pagina - 1) * paginacion.Tam).Take(paginacion.Tam)
+            .Select(registro => new FilaMovimiento(registro.movimiento.IdMovimiento, registro.movimiento.DireccionIp,
+                registro.usuario.NombreUsuario, registro.usuario.Nombre + " " + registro.usuario.Apellido1,
+                registro.movimiento.FechaHora, registro.movimiento.Modulo,
+                registro.movimiento.TipoMovimiento, registro.movimiento.Detalle))
             .ToListAsync();
 
         if (consultar is not null)
             await bitacora.MovimientoAsync(IdActual, "BITACORAS", "CONSULTA", "Bitácora de movimientos");
-        await CargarUsuarios(f.IdUsuario);
-        ViewBag.Tipos = new SelectList(await db.BitacoraMovimientos.AsNoTracking()
-            .Select(m => m.TipoMovimiento).Distinct().OrderBy(t => t).ToListAsync(), f.TipoMovimiento);
-        ViewBag.Modulos = new SelectList(await db.BitacoraMovimientos.AsNoTracking()
-            .Select(m => m.Modulo).Distinct().OrderBy(m => m).ToListAsync(), f.Modulo);
-        return View(new MovimientosViewModel { Filtro = f, Filas = filas, Paginacion = pag });
+        await CargarUsuarios(filtro.IdUsuario);
+        ViewBag.Tipos = new SelectList(await contexto.BitacoraMovimientos.AsNoTracking()
+            .Select(movimiento => movimiento.TipoMovimiento).Distinct().OrderBy(tipo => tipo).ToListAsync(), filtro.TipoMovimiento);
+        ViewBag.Modulos = new SelectList(await contexto.BitacoraMovimientos.AsNoTracking()
+            .Select(movimiento => movimiento.Modulo).Distinct().OrderBy(modulo => modulo).ToListAsync(), filtro.Modulo);
+        return View(new MovimientosViewModel { Filtro = filtro, Filas = filas, Paginacion = paginacion });
     }
 
     // ---------- apoyo ----------
     private static RouteValueDictionary Ruta(int? idUsuario, DateTime? desde, DateTime? hasta, string? tipo = null, string? modulo = null)
     {
-        var r = new RouteValueDictionary();
-        if (idUsuario is int u) r["IdUsuario"] = u;
-        if (!string.IsNullOrEmpty(tipo)) r["TipoMovimiento"] = tipo;
-        if (!string.IsNullOrEmpty(modulo)) r["Modulo"] = modulo;
-        if (desde is DateTime d) r["Desde"] = d.ToString("yyyy-MM-dd");
-        if (hasta is DateTime h) r["Hasta"] = h.ToString("yyyy-MM-dd");
-        return r;
+        var valoresRuta = new RouteValueDictionary();
+        if (idUsuario is int usuarioSeleccionado) valoresRuta["IdUsuario"] = usuarioSeleccionado;
+        if (!string.IsNullOrEmpty(tipo)) valoresRuta["TipoMovimiento"] = tipo;
+        if (!string.IsNullOrEmpty(modulo)) valoresRuta["Modulo"] = modulo;
+        if (desde is DateTime fechaDesde) valoresRuta["Desde"] = fechaDesde.ToString("yyyy-MM-dd");
+        if (hasta is DateTime fechaHasta) valoresRuta["Hasta"] = fechaHasta.ToString("yyyy-MM-dd");
+        return valoresRuta;
     }
 
-    private async Task CargarUsuarios(int? seleccionado) =>
+    private async Task CargarUsuarios(int? idUsuarioSeleccionado) =>
         ViewBag.Usuarios = new SelectList(
-            await db.Usuarios.AsNoTracking().OrderBy(u => u.Nombre)
-                .Select(u => new { u.IdUsuario, Texto = u.Nombre + " " + u.Apellido1 + " (" + u.NombreUsuario + ")" }).ToListAsync(),
-            "IdUsuario", "Texto", seleccionado);
+            await contexto.Usuarios.AsNoTracking().OrderBy(usuario => usuario.Nombre)
+                .Select(usuario => new { usuario.IdUsuario, Texto = usuario.Nombre + " " + usuario.Apellido1 + " (" + usuario.NombreUsuario + ")" }).ToListAsync(),
+            "IdUsuario", "Texto", idUsuarioSeleccionado);
 }

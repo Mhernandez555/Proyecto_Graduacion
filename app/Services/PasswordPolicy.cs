@@ -20,17 +20,17 @@ public static class PasswordPolicy
         const string letras = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
         const string numeros = "23456789";
         const string especiales = "!@#$%*?";
-        var c = new List<char>();
-        for (var i = 0; i < 5; i++) c.Add(Tomar(letras));
-        for (var i = 0; i < 3; i++) c.Add(Tomar(numeros));
-        for (var i = 0; i < 2; i++) c.Add(Tomar(especiales));
-        for (var i = c.Count - 1; i > 0; i--)
+        var caracteres = new List<char>();
+        for (var indice = 0; indice < 5; indice++) caracteres.Add(Tomar(letras));
+        for (var indice = 0; indice < 3; indice++) caracteres.Add(Tomar(numeros));
+        for (var indice = 0; indice < 2; indice++) caracteres.Add(Tomar(especiales));
+        for (var indice = caracteres.Count - 1; indice > 0; indice--)
         {
-            var j = RandomNumberGenerator.GetInt32(i + 1);
-            (c[i], c[j]) = (c[j], c[i]);
+            var otroIndice = RandomNumberGenerator.GetInt32(indice + 1);
+            (caracteres[indice], caracteres[otroIndice]) = (caracteres[otroIndice], caracteres[indice]);
         }
-        return new string(c.ToArray());
+        return new string(caracteres.ToArray());
     }
 
-    private static char Tomar(string s) => s[RandomNumberGenerator.GetInt32(s.Length)];
+    private static char Tomar(string caracteres) => caracteres[RandomNumberGenerator.GetInt32(caracteres.Length)];
 }

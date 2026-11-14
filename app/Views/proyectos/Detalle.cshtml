@@ -1,8 +1,8 @@
 @model ProyectoDetalleViewModel
-@functions { bool Ve(string modulo) => int.TryParse(User.FindFirst("perm:" + modulo)?.Value, out var n) && n > 0; }
+@functions { bool Ve(string modulo) => int.TryParse(User.FindFirst("perm:" + modulo)?.Value, out var nivelPermiso) && nivelPermiso > 0; }
 @{
     ViewData["Title"] = $"{Model.Codigo} · {Model.Nombre}";
-    var puedeCrearTarea = int.TryParse(User.FindFirst("perm:TAREAS")?.Value, out var nt) && nt >= 2;
+    var puedeCrearTarea = int.TryParse(User.FindFirst("perm:TAREAS")?.Value, out var nivelTareas) && nivelTareas >= 2;
 }
 <div class="page-head no-print">
     <a asp-action="Index" class="btn">Volver a proyectos</a>
@@ -15,7 +15,7 @@
         <div class="stat"><strong>@Formato.Dinero(Model.Precio)</strong><span>Precio de venta</span></div>
         <div class="stat"><strong>@Formato.Dinero(Model.Costo)</strong><span>Costo acumulado</span></div>
         <div class="stat @(Model.Rentabilidad < 0 ? "bad" : "")"><strong>@Formato.Dinero(Model.Rentabilidad)</strong><span>Rentabilidad</span></div>
-        <div class="stat @(Model.Margen is decimal mg && mg < 0 ? "bad" : "")"><strong>@Formato.Porcentaje(Model.Margen)</strong><span>Margen sobre el precio</span></div>
+        <div class="stat @(Model.Margen is decimal margen && margen < 0 ? "bad" : "")"><strong>@Formato.Porcentaje(Model.Margen)</strong><span>Margen sobre el precio</span></div>
     </div>
 }
 
@@ -30,7 +30,7 @@
         <dt>Estado</dt><dd><span class="pill @Formato.ClaseEstado(Model.Estado)">@Model.Estado</span></dd>
         <dt>Inicio</dt><dd>@Formato.Fecha(Model.FechaInicio)</dd>
         <dt>Finalización prevista</dt><dd>@Formato.Fecha(Model.FechaFin)</dd>
-        <dt>Avance</dt><dd>@(Model.Tareas.Count == 0 ? "Sin tareas" : $"{Model.TareasCompletadas} de {Model.Tareas.Count} tareas completadas")</dd>
+        <dt>Avance</dt><dd>@(Model.TotalTareas == 0 ? "Sin tareas" : $"{Model.TareasCompletadas} de {Model.TotalTareas} tareas completadas")</dd>
     </dl>
 </div>
 
@@ -42,7 +42,7 @@
             <div class="field">
                 <label for="IdEstado">Estado</label>
                 <select id="IdEstado" name="IdEstado">
-                    @foreach (var o in (SelectList)ViewBag.Estados) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+                    @foreach (var opcion in (SelectList)ViewBag.Estados) { <option value="@opcion.Value" selected="@opcion.Selected">@opcion.Text</option> }
                 </select>
                 <span class="hint">Un proyecto solo se puede finalizar cuando todas sus tareas están completadas.</span>
             </div>
@@ -69,32 +69,33 @@
                 @if (Ve("TAREAS")) { <th>Acciones</th> }
             </tr></thead>
             <tbody>
-            @foreach (var t in Model.Tareas)
+            @foreach (var tarea in Model.Tareas)
             {
                 <tr>
-                    <td>@t.Codigo</td>
-                    <td>@t.Nombre</td>
-                    <td>@t.Categoria</td>
-                    <td>@t.Asignados</td>
-                    <td><span class="pill @Formato.ClaseEstado(t.Estado)">@t.Estado</span></td>
-                    <td>@Formato.Fecha(t.FechaInicio)</td>
-                    <td>@Formato.Fecha(t.FechaFin) @if (t.Vencida) { <span class="pill bad">Vencida</span> }</td>
-                    <td class="num">@Formato.Horas(t.Estimado)</td>
-                    <td class="num">@Formato.Horas(t.Registrado)</td>
+                    <td>@tarea.Codigo</td>
+                    <td>@tarea.Nombre</td>
+                    <td>@tarea.Categoria</td>
+                    <td>@tarea.Asignados</td>
+                    <td><span class="pill @Formato.ClaseEstado(tarea.Estado)">@tarea.Estado</span></td>
+                    <td>@Formato.Fecha(tarea.FechaInicio)</td>
+                    <td>@Formato.Fecha(tarea.FechaFin) @if (tarea.Vencida) { <span class="pill bad">Vencida</span> }</td>
+                    <td class="num">@Formato.Horas(tarea.Estimado)</td>
+                    <td class="num">@Formato.Horas(tarea.Registrado)</td>
                     @if (Ve("TAREAS"))
                     {
-                        <td class="acciones"><a class="btn small" asp-controller="Tareas" asp-action="Detalle" asp-route-id="@t.IdTarea">Consultar</a></td>
+                        <td class="acciones"><a class="btn small" asp-controller="Tareas" asp-action="Detalle" asp-route-id="@tarea.IdTarea">Consultar</a></td>
                     }
                 </tr>
             }
             </tbody>
             <tfoot><tr>
-                <th colspan="7">Total (@Model.Tareas.Count tareas)</th>
-                <th class="num">@Formato.Horas(Model.Tareas.Sum(x => x.Estimado))</th>
-                <th class="num">@Formato.Horas(Model.Tareas.Sum(x => x.Registrado))</th>
+                <th colspan="7">Subtotal de esta página (@Model.Tareas.Count tareas)</th>
+                <th class="num">@Formato.Horas(Model.Tareas.Sum(tarea => tarea.Estimado))</th>
+                <th class="num">@Formato.Horas(Model.Tareas.Sum(tarea => tarea.Registrado))</th>
                 @if (Ve("TAREAS")) { <th></th> }
             </tr></tfoot>
         </table></div>
+        <partial name="_Paginacion" model="Model.Paginacion" />
     }
 </div>
 @if (Model.VerFinanzas)

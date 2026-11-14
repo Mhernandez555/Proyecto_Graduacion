@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 namespace Controlex.Web.Models;
 
-public class ControlexDbContext(DbContextOptions<ControlexDbContext> options) : DbContext(options)
+public class ControlexDbContext(DbContextOptions<ControlexDbContext> opciones) : DbContext(opciones)
 {
     // Seguridad y bitácoras
     public DbSet<Rol> Roles => Set<Rol>();
@@ -25,19 +25,19 @@ public class ControlexDbContext(DbContextOptions<ControlexDbContext> options) : 
     // Vista de rentabilidad
     public DbSet<VistaRentabilidad> RentabilidadProyectos => Set<VistaRentabilidad>();
 
-    protected override void OnModelCreating(ModelBuilder b)
+    protected override void OnModelCreating(ModelBuilder constructorModelo)
     {
-        b.Entity<Usuario>().Property(u => u.CostoHora).HasPrecision(12, 2);
-        b.Entity<Proyecto>().Property(p => p.PrecioVenta).HasPrecision(14, 2);
-        b.Entity<Tarea>().Property(t => t.TiempoEstimado).HasPrecision(8, 2);
-        b.Entity<RegistroTiempo>().Property(r => r.Horas).HasPrecision(6, 2);
-        b.Entity<RegistroTiempo>().Property(r => r.CostoHora).HasPrecision(12, 2);
+        constructorModelo.Entity<Usuario>().Property(usuario => usuario.CostoHora).HasPrecision(12, 2);
+        constructorModelo.Entity<Proyecto>().Property(proyecto => proyecto.PrecioVenta).HasPrecision(14, 2);
+        constructorModelo.Entity<Tarea>().Property(tarea => tarea.TiempoEstimado).HasPrecision(8, 2);
+        constructorModelo.Entity<RegistroTiempo>().Property(registro => registro.Horas).HasPrecision(6, 2);
+        constructorModelo.Entity<RegistroTiempo>().Property(registro => registro.CostoHora).HasPrecision(12, 2);
 
-        b.Entity<TareaUsuario>().HasKey(x => new { x.IdTarea, x.IdUsuario });
+        constructorModelo.Entity<TareaUsuario>().HasKey(asignacion => new { asignacion.IdTarea, asignacion.IdUsuario });
 
-        b.Entity<VistaRentabilidad>().ToView("vw_rentabilidad_proyectos");
-        b.Entity<VistaRentabilidad>().Property(v => v.PrecioVenta).HasPrecision(14, 2);
-        b.Entity<VistaRentabilidad>().Property(v => v.CostoAcumulado).HasPrecision(18, 2);
-        b.Entity<VistaRentabilidad>().Property(v => v.Rentabilidad).HasPrecision(18, 2);
+        constructorModelo.Entity<VistaRentabilidad>().ToView("vw_rentabilidad_proyectos");
+        constructorModelo.Entity<VistaRentabilidad>().Property(resumen => resumen.PrecioVenta).HasPrecision(14, 2);
+        constructorModelo.Entity<VistaRentabilidad>().Property(resumen => resumen.CostoAcumulado).HasPrecision(18, 2);
+        constructorModelo.Entity<VistaRentabilidad>().Property(resumen => resumen.Rentabilidad).HasPrecision(18, 2);
     }
 }

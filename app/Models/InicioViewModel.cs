@@ -2,7 +2,7 @@ namespace Controlex.Web.Models;
 
 public record TareaResumen(string Codigo, string Nombre, string Proyecto, string Estado, DateOnly? FechaFin)
 {
-    public bool Vencida => Estado != "Completada" && FechaFin is DateOnly f && f < DateOnly.FromDateTime(DateTime.Today);
+    public bool Vencida => Estado != "Completada" && FechaFin is DateOnly fechaFin && fechaFin < DateOnly.FromDateTime(DateTime.Today);
 }
 
 public record ProyectoResumen(string Codigo, string Nombre, string Cliente, string Estado, DateOnly? FechaFin);

@@ -15,14 +15,14 @@
             <label for="idCliente">Cliente</label>
             <select id="idCliente" name="idCliente">
                 <option value="">Todos</option>
-                @foreach (var o in (SelectList)ViewBag.Clientes) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+                @foreach (var opcion in (SelectList)ViewBag.Clientes) { <option value="@opcion.Value" selected="@opcion.Selected">@opcion.Text</option> }
             </select>
         </div>
         <div class="field">
             <label for="idEstado">Estado</label>
             <select id="idEstado" name="idEstado">
                 <option value="">Todos</option>
-                @foreach (var o in (SelectList)ViewBag.Estados) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+                @foreach (var opcion in (SelectList)ViewBag.Estados) { <option value="@opcion.Value" selected="@opcion.Selected">@opcion.Text</option> }
             </select>
         </div>
         <div class="form-actions">
@@ -47,35 +47,32 @@ else
                 <th>Acciones</th>
             </tr></thead>
             <tbody>
-            @foreach (var p in Model.Filas)
+            @foreach (var proyecto in Model.Filas)
             {
                 <tr>
-                    <td>@p.Codigo</td>
-                    <td>@p.Nombre</td>
-                    <td>@p.Cliente</td>
-                    <td>@p.Categoria</td>
-                    <td>@p.Responsable</td>
-                    <td><span class="pill @Formato.ClaseEstado(p.Estado)">@p.Estado</span></td>
-                    <td>@Formato.Fecha(p.FechaInicio)</td>
-                    <td>@Formato.Fecha(p.FechaFin)</td>
-                    <td>@(p.TareasTotal == 0 ? "Sin tareas" : $"{p.TareasCompletadas} de {p.TareasTotal} tareas")</td>
+                    <td>@proyecto.Codigo</td>
+                    <td>@proyecto.Nombre</td>
+                    <td>@proyecto.Cliente</td>
+                    <td>@proyecto.Categoria</td>
+                    <td>@proyecto.Responsable</td>
+                    <td><span class="pill @Formato.ClaseEstado(proyecto.Estado)">@proyecto.Estado</span></td>
+                    <td>@Formato.Fecha(proyecto.FechaInicio)</td>
+                    <td>@Formato.Fecha(proyecto.FechaFin)</td>
+                    <td>@(proyecto.TareasTotal == 0 ? "Sin tareas" : $"{proyecto.TareasCompletadas} de {proyecto.TareasTotal} tareas")</td>
                     @if (Model.Total)
                     {
-                        <td class="num">@Formato.Dinero(p.Precio ?? 0m)</td>
-                        <td class="num">@Formato.Dinero(p.Costo ?? 0m)</td>
-                        <td class="num @((p.Rentabilidad ?? 0m) < 0 ? "neg" : "")">@Formato.Dinero(p.Rentabilidad ?? 0m)</td>
+                        <td class="num">@Formato.Dinero(proyecto.Precio ?? 0m)</td>
+                        <td class="num">@Formato.Dinero(proyecto.Costo ?? 0m)</td>
+                        <td class="num @((proyecto.Rentabilidad ?? 0m) < 0 ? "neg" : "")">@Formato.Dinero(proyecto.Rentabilidad ?? 0m)</td>
                     }
                     <td class="acciones">
-                        <a class="btn small" asp-action="Detalle" asp-route-id="@p.IdProyecto">Consultar</a>
-                        @if (Model.Total) { <a class="btn small" asp-action="Editar" asp-route-id="@p.IdProyecto">Editar</a> }
+                        <a class="btn small" asp-action="Detalle" asp-route-id="@proyecto.IdProyecto">Consultar</a>
+                        @if (Model.Total) { <a class="btn small" asp-action="Editar" asp-route-id="@proyecto.IdProyecto">Editar</a> }
                     </td>
                 </tr>
             }
             </tbody>
         </table>
     </div></div>
-    @if (Model.HayMas)
-    {
-        <p class="muted">Se muestran los primeros @Model.Limite proyectos. Use los filtros para acotar la lista.</p>
-    }
+    <partial name="_Paginacion" model="Model.Paginacion" />
 }

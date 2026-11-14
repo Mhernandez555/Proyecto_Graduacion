@@ -32,12 +32,12 @@
         <table class="grid perm-table">
             <thead><tr><th>Módulo</th><th>Nivel de acceso</th></tr></thead>
             <tbody>
-            @for (var i = 0; i < Model.Permisos.Count; i++)
+            @for (var indice = 0; indice < Model.Permisos.Count; indice++)
             {
                 <tr>
-                    <td>@Etiqueta(Model.Permisos[i].Modulo)<input type="hidden" asp-for="Permisos[i].Modulo" /></td>
+                    <td>@Etiqueta(Model.Permisos[indice].Modulo)<input type="hidden" asp-for="Permisos[indice].Modulo" /></td>
                     <td>
-                        <select asp-for="Permisos[i].Nivel" aria-label="Nivel de acceso a @Etiqueta(Model.Permisos[i].Modulo)">
+                        <select asp-for="Permisos[indice].Nivel" aria-label="Nivel de acceso a @Etiqueta(Model.Permisos[indice].Modulo)">
                             <option value="0">Sin acceso</option>
                             <option value="1">Parcial</option>
                             <option value="2">Total</option>

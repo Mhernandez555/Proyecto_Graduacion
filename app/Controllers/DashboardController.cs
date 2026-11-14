@@ -5,41 +5,47 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace Controlex.Web.Controllers;
 
-public class DashboardController(ControlexDbContext db) : Controller
+public class DashboardController(ControlexDbContext contexto) : Controller
 {
     public async Task<IActionResult> Index()
     {
         var idActual = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var hoy = DateOnly.FromDateTime(DateTime.Today);
-        var vm = new InicioViewModel
+        var modeloInicio = new InicioViewModel
         {
             VeEquipo = int.TryParse(User.FindFirst("perm:PROYECTOS")?.Value, out var nivel) && nivel >= 2
         };
 
         // Tareas asignadas al usuario
-        var mias = db.Tareas.AsNoTracking()
-            .Where(t => db.TareaUsuarios.Any(a => a.IdTarea == t.IdTarea && a.IdUsuario == idActual));
-        vm.MisPendientes = await mias.CountAsync(t => t.EstadoActual.Nombre == "Pendiente");
-        vm.MisEnProceso = await mias.CountAsync(t => t.EstadoActual.Nombre == "En proceso");
-        vm.MisVencidas = await mias.CountAsync(t => t.EstadoActual.Nombre != "Completada" && t.FechaFin != null && t.FechaFin < hoy);
-        vm.ProximasTareas = await mias.Where(t => t.EstadoActual.Nombre != "Completada")
-            .OrderBy(t => t.FechaFin == null).ThenBy(t => t.FechaFin)
+        var tareasAsignadas = contexto.Tareas.AsNoTracking()
+            .Where(tarea => contexto.TareaUsuarios.Any(asignacion =>
+                asignacion.IdTarea == tarea.IdTarea && asignacion.IdUsuario == idActual));
+        modeloInicio.MisPendientes = await tareasAsignadas.CountAsync(tarea => tarea.EstadoActual.Nombre == "Pendiente");
+        modeloInicio.MisEnProceso = await tareasAsignadas.CountAsync(tarea => tarea.EstadoActual.Nombre == "En proceso");
+        modeloInicio.MisVencidas = await tareasAsignadas.CountAsync(tarea =>
+            tarea.EstadoActual.Nombre != "Completada" && tarea.FechaFin != null && tarea.FechaFin < hoy);
+        modeloInicio.ProximasTareas = await tareasAsignadas.Where(tarea => tarea.EstadoActual.Nombre != "Completada")
+            .OrderBy(tarea => tarea.FechaFin == null).ThenBy(tarea => tarea.FechaFin)
             .Take(5)
-            .Select(t => new TareaResumen(t.Codigo, t.Nombre, t.Proyecto.Nombre, t.EstadoActual.Nombre, t.FechaFin))
+            .Select(tarea => new TareaResumen(tarea.Codigo, tarea.Nombre, tarea.Proyecto.Nombre,
+                tarea.EstadoActual.Nombre, tarea.FechaFin))
             .ToListAsync();
 
         // Vista del equipo
-        if (vm.VeEquipo)
+        if (modeloInicio.VeEquipo)
         {
-            vm.ProyectosEnEjecucion = await db.Proyectos.CountAsync(p => p.EstadoActual.Nombre == "En ejecución");
-            vm.TareasPendientesEquipo = await db.Tareas.CountAsync(t => t.EstadoActual.Nombre != "Completada");
-            vm.ProyectosActivos = await db.Proyectos.AsNoTracking()
-                .Where(p => p.EstadoActual.Nombre == "En ejecución")
-                .OrderByDescending(p => p.FechaCreacion).Take(5)
-                .Select(p => new ProyectoResumen(p.Codigo, p.Nombre, p.Cliente.NombreCliente, p.EstadoActual.Nombre, p.FechaFin))
+            modeloInicio.ProyectosEnEjecucion = await contexto.Proyectos.CountAsync(proyecto =>
+                proyecto.EstadoActual.Nombre == "En ejecución");
+            modeloInicio.TareasPendientesEquipo = await contexto.Tareas.CountAsync(tarea =>
+                tarea.EstadoActual.Nombre != "Completada");
+            modeloInicio.ProyectosActivos = await contexto.Proyectos.AsNoTracking()
+                .Where(proyecto => proyecto.EstadoActual.Nombre == "En ejecución")
+                .OrderByDescending(proyecto => proyecto.FechaCreacion).Take(5)
+                .Select(proyecto => new ProyectoResumen(proyecto.Codigo, proyecto.Nombre,
+                    proyecto.Cliente.NombreCliente, proyecto.EstadoActual.Nombre, proyecto.FechaFin))
                 .ToListAsync();
         }
-        return View(vm);
+        return View(modeloInicio);
     }
 
     [AllowAnonymous]

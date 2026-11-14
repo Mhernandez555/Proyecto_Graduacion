@@ -1,4 +1,4 @@
-@functions { int Nivel(string m) => int.TryParse(User.FindFirst("perm:" + m)?.Value, out var n) ? n : 0; }
+@functions { int Nivel(string modulo) => int.TryParse(User.FindFirst("perm:" + modulo)?.Value, out var nivelPermiso) ? nivelPermiso : 0; }
 <!DOCTYPE html>
 <html lang="es">
 <head>

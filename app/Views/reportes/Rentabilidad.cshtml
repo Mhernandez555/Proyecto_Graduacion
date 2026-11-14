@@ -1,7 +1,7 @@
 @model RentabilidadViewModel
 @{
     ViewData["Title"] = "Reporte de proyectos y rentabilidad";
-    var f = Model.Filtro;
+    var filtro = Model.Filtro;
 }
 <div class="card">
     <form method="get" asp-action="Rentabilidad" class="filtros">
@@ -9,16 +9,16 @@
             <label for="IdProyecto">Proyecto</label>
             <select id="IdProyecto" name="IdProyecto">
                 <option value="">Todos</option>
-                @foreach (var o in (SelectList)ViewBag.Proyectos) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+                @foreach (var opcion in (SelectList)ViewBag.Proyectos) { <option value="@opcion.Value" selected="@opcion.Selected">@opcion.Text</option> }
             </select>
         </div>
         <div class="field">
             <label for="Desde">Inicio desde</label>
-            <input type="date" id="Desde" name="Desde" value="@f.Desde?.ToString("yyyy-MM-dd")" />
+            <input type="date" id="Desde" name="Desde" value="@filtro.Desde?.ToString("yyyy-MM-dd")" />
         </div>
         <div class="field">
             <label for="Hasta">Inicio hasta</label>
-            <input type="date" id="Hasta" name="Hasta" value="@f.Hasta?.ToString("yyyy-MM-dd")" />
+            <input type="date" id="Hasta" name="Hasta" value="@filtro.Hasta?.ToString("yyyy-MM-dd")" />
         </div>
         <div class="form-actions">
             <button type="submit" name="consultar" value="1" class="btn primary">Consultar</button>
@@ -37,9 +37,9 @@ else if (!Model.Filas.Any())
 }
 else
 {
-    var venta = Model.Filas.Sum(x => x.PrecioVenta);
-    var costo = Model.Filas.Sum(x => x.Costo);
-    var rent = Model.Filas.Sum(x => x.Rentabilidad);
+    var totalVentas = Model.Resumen.Ventas;
+    var totalCostos = Model.Resumen.Costos;
+    var rentabilidadTotal = Model.Resumen.Rentabilidad;
     <div class="card"><div class="table-wrap">
         <table class="grid">
             <thead><tr>
@@ -47,30 +47,32 @@ else
                 <th class="num">Precio de venta</th><th class="num">Costo</th><th class="num">Rentabilidad</th><th class="num">Margen</th>
             </tr></thead>
             <tbody>
-            @foreach (var x in Model.Filas)
+            @foreach (var fila in Model.Filas)
             {
                 <tr>
-                    <td>@x.Codigo</td>
-                    <td>@x.Proyecto</td>
-                    <td>@x.Cliente</td>
-                    <td><span class="pill @Formato.ClaseEstado(x.Estado)">@x.Estado</span></td>
-                    <td>@Formato.Fecha(x.FechaInicio)</td>
-                    <td>@Formato.Fecha(x.FechaFin)</td>
-                    <td class="num">@Formato.Dinero(x.PrecioVenta)</td>
-                    <td class="num">@Formato.Dinero(x.Costo)</td>
-                    <td class="num @(x.Rentabilidad < 0 ? "neg" : "")">@Formato.Dinero(x.Rentabilidad)</td>
-                    <td class="num">@Formato.Porcentaje(x.Margen)</td>
+                    <td>@fila.Codigo</td>
+                    <td>@fila.Proyecto</td>
+                    <td>@fila.Cliente</td>
+                    <td><span class="pill @Formato.ClaseEstado(fila.Estado)">@fila.Estado</span></td>
+                    <td>@Formato.Fecha(fila.FechaInicio)</td>
+                    <td>@Formato.Fecha(fila.FechaFin)</td>
+                    <td class="num">@Formato.Dinero(fila.PrecioVenta)</td>
+                    <td class="num">@Formato.Dinero(fila.Costo)</td>
+                    <td class="num @(fila.Rentabilidad < 0 ? "neg" : "")">@Formato.Dinero(fila.Rentabilidad)</td>
+                    <td class="num">@Formato.Porcentaje(fila.Margen)</td>
                 </tr>
             }
             </tbody>
             <tfoot><tr>
-                <th colspan="6">Totales (@Model.Filas.Count proyectos)</th>
-                <th class="num">@Formato.Dinero(venta)</th>
-                <th class="num">@Formato.Dinero(costo)</th>
-                <th class="num @(rent < 0 ? "neg" : "")">@Formato.Dinero(rent)</th>
-                <th class="num">@(venta > 0 ? Formato.Porcentaje(rent / venta) : "—")</th>
+                <th colspan="6">Totales (@Model.Resumen.Cantidad proyectos)</th>
+                <th class="num">@Formato.Dinero(totalVentas)</th>
+                <th class="num">@Formato.Dinero(totalCostos)</th>
+                <th class="num @(rentabilidadTotal < 0 ? "neg" : "")">@Formato.Dinero(rentabilidadTotal)</th>
+                <th class="num">@(totalVentas > 0 ? Formato.Porcentaje(rentabilidadTotal / totalVentas) : "—")</th>
             </tr></tfoot>
         </table>
-    </div></div>
+    </div>
+    <partial name="_Paginacion" model="Model.Paginacion" />
+    </div>
     <p class="muted">Costo = horas registradas × costo por hora vigente al registrar. Rentabilidad = precio de venta − costo.</p>
 }

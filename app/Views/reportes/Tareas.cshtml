@@ -1,8 +1,8 @@
 @model TareasReporteViewModel
 @{
     ViewData["Title"] = "Reporte de eficiencia de tareas y pendientes";
-    var f = Model.Filtro;
-    var eficiencia = f.Tipo != "pendientes";
+    var filtro = Model.Filtro;
+    var eficiencia = filtro.Tipo != "pendientes";
 }
 <div class="card">
     <form method="get" asp-action="Tareas" class="filtros">
@@ -17,7 +17,7 @@
             <label for="IdProyecto">Proyecto</label>
             <select id="IdProyecto" name="IdProyecto">
                 <option value="">Todos</option>
-                @foreach (var o in (SelectList)ViewBag.Proyectos) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+                @foreach (var opcion in (SelectList)ViewBag.Proyectos) { <option value="@opcion.Value" selected="@opcion.Selected">@opcion.Text</option> }
             </select>
         </div>
         @if (!Model.SoloPropias)
@@ -26,7 +26,7 @@
                 <label for="IdUsuario">Usuario asignado</label>
                 <select id="IdUsuario" name="IdUsuario">
                     <option value="">Todos</option>
-                    @foreach (var o in (SelectList)ViewBag.Usuarios) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+                    @foreach (var opcion in (SelectList)ViewBag.Usuarios) { <option value="@opcion.Value" selected="@opcion.Selected">@opcion.Text</option> }
                 </select>
             </div>
         }
@@ -34,16 +34,16 @@
             <label for="IdEstado">Estado</label>
             <select id="IdEstado" name="IdEstado">
                 <option value="">Todos</option>
-                @foreach (var o in (SelectList)ViewBag.Estados) { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
+                @foreach (var opcion in (SelectList)ViewBag.Estados) { <option value="@opcion.Value" selected="@opcion.Selected">@opcion.Text</option> }
             </select>
         </div>
         <div class="field">
             <label for="Desde">Período desde</label>
-            <input type="date" id="Desde" name="Desde" value="@f.Desde?.ToString("yyyy-MM-dd")" />
+            <input type="date" id="Desde" name="Desde" value="@filtro.Desde?.ToString("yyyy-MM-dd")" />
         </div>
         <div class="field">
             <label for="Hasta">Período hasta</label>
-            <input type="date" id="Hasta" name="Hasta" value="@f.Hasta?.ToString("yyyy-MM-dd")" />
+            <input type="date" id="Hasta" name="Hasta" value="@filtro.Hasta?.ToString("yyyy-MM-dd")" />
         </div>
         <div class="form-actions">
             <button type="submit" name="consultar" value="1" class="btn primary">Consultar</button>
@@ -63,10 +63,10 @@ else if (!Model.Filas.Any())
 }
 else
 {
-    var est = Model.Filas.Sum(x => x.Estimado);
-    var reg = Model.Filas.Sum(x => x.Registrado);
-    var conTiempo = Model.Filas.Where(x => x.Registrado > 0).ToList();
-    var regCon = conTiempo.Sum(x => x.Registrado);
+    var totalEstimado = Model.Resumen.Estimado;
+    var totalRegistrado = Model.Resumen.Registrado;
+    var horasEstimadasConTiempo = Model.Resumen.EstimadoConTiempo;
+    var horasRegistradasConTiempo = Model.Resumen.RegistradoConTiempo;
     <div class="card"><div class="table-wrap">
         <table class="grid">
             <thead><tr>
@@ -76,28 +76,28 @@ else
                 else { <th>Situación</th> }
             </tr></thead>
             <tbody>
-            @foreach (var x in Model.Filas)
+            @foreach (var fila in Model.Filas)
             {
                 <tr>
-                    <td>@x.Codigo</td>
-                    <td>@x.Nombre</td>
-                    <td>@x.Proyecto</td>
-                    <td>@x.Categoria</td>
-                    <td>@x.Usuarios</td>
-                    <td><span class="pill @Formato.ClaseEstado(x.Estado)">@x.Estado</span></td>
-                    <td>@Formato.Fecha(x.FechaInicio)</td>
-                    <td>@Formato.Fecha(x.FechaFin)</td>
-                    <td class="num">@Formato.Horas(x.Estimado)</td>
-                    <td class="num">@Formato.Horas(x.Registrado)</td>
+                    <td>@fila.Codigo</td>
+                    <td>@fila.Nombre</td>
+                    <td>@fila.Proyecto</td>
+                    <td>@fila.Categoria</td>
+                    <td>@fila.Usuarios</td>
+                    <td><span class="pill @Formato.ClaseEstado(fila.Estado)">@fila.Estado</span></td>
+                    <td>@Formato.Fecha(fila.FechaInicio)</td>
+                    <td>@Formato.Fecha(fila.FechaFin)</td>
+                    <td class="num">@Formato.Horas(fila.Estimado)</td>
+                    <td class="num">@Formato.Horas(fila.Registrado)</td>
                     @if (eficiencia)
                     {
-                        <td class="num @(x.Diferencia < 0 ? "neg" : "")">@Formato.Horas(x.Diferencia)</td>
-                        <td class="num">@Formato.Porcentaje(x.Eficiencia)</td>
+                        <td class="num @(fila.Diferencia < 0 ? "neg" : "")">@Formato.Horas(fila.Diferencia)</td>
+                        <td class="num">@Formato.Porcentaje(fila.Eficiencia)</td>
                     }
                     else
                     {
                         <td>
-                            @if (x.Vencida) { <span class="pill bad">Vencida</span> }
+                            @if (fila.Vencida) { <span class="pill bad">Vencida</span> }
                             else { <span class="pill ok">En plazo</span> }
                         </td>
                     }
@@ -105,18 +105,21 @@ else
             }
             </tbody>
             <tfoot><tr>
-                <th colspan="8">Totales (@Model.Filas.Count tareas)</th>
-                <th class="num">@Formato.Horas(est)</th>
-                <th class="num">@Formato.Horas(reg)</th>
+                <th colspan="8">Totales (@Model.Resumen.Cantidad tareas)</th>
+                <th class="num">@Formato.Horas(totalEstimado)</th>
+                <th class="num">@Formato.Horas(totalRegistrado)</th>
                 @if (eficiencia)
                 {
-                    <th class="num">@Formato.Horas(est - reg)</th>
-                    <th class="num">@(regCon > 0 ? Formato.Porcentaje(conTiempo.Sum(x => x.Estimado) / regCon) : "—")</th>
+                    <th class="num">@Formato.Horas(totalEstimado - totalRegistrado)</th>
+                    <th class="num">@(horasRegistradasConTiempo > 0
+                        ? Formato.Porcentaje(horasEstimadasConTiempo / horasRegistradasConTiempo) : "—")</th>
                 }
                 else { <th></th> }
             </tr></tfoot>
         </table>
-    </div></div>
+    </div>
+    <partial name="_Paginacion" model="Model.Paginacion" />
+    </div>
     @if (eficiencia)
     {
         <p class="muted">Eficiencia = horas estimadas ÷ horas registradas. 100 % o más: dentro de lo estimado. Las tareas sin horas registradas no se incluyen en el total de eficiencia.</p>

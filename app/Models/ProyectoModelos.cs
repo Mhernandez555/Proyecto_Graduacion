@@ -51,9 +51,8 @@ public record ProyectoListado(int IdProyecto, string Codigo, string Nombre, stri
 public class ProyectosIndexViewModel
 {
     public List<ProyectoListado> Filas { get; set; } = new();
-    public bool HayMas { get; set; }
     public bool Total { get; set; }
-    public int Limite { get; set; }
+    public Paginacion Paginacion { get; set; } = new();
 }
 
 public class ProyectoDetalleViewModel
@@ -72,11 +71,13 @@ public class ProyectoDetalleViewModel
     // Solo acceso total
     public bool VerFinanzas { get; set; }
     public bool PuedeEditar { get; set; }
+    public int TotalTareas { get; set; }
+    public int TareasCompletadas { get; set; }
+    public Paginacion Paginacion { get; set; } = new();
     public decimal Precio { get; set; }
     public decimal Costo { get; set; }
     public decimal Rentabilidad => Precio - Costo;
     public decimal? Margen => Precio > 0 ? Rentabilidad / Precio : null;
 
     public List<TareaListado> Tareas { get; set; } = new();
-    public int TareasCompletadas => Tareas.Count(t => t.Estado == "Completada");
 }

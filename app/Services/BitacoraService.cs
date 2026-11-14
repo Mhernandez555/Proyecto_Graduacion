@@ -1,33 +1,43 @@
 using Controlex.Web.Models;
 namespace Controlex.Web.Services;
 
-public class BitacoraService(ControlexDbContext db, IHttpContextAccessor http)
+public class BitacoraService(ControlexDbContext contexto, IHttpContextAccessor accesorHttp)
 {
-    private string Ip => http.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "desconocida";
+    private string Ip
+    {
+        get
+        {
+            var direccion = accesorHttp.HttpContext?.Connection.RemoteIpAddress;
+            if (direccion is null) return "desconocida";
+            if (direccion.IsIPv4MappedToIPv6) direccion = direccion.MapToIPv4();
+            return direccion.ToString();
+        }
+    }
 
     public async Task<int> IngresoAsync(int idUsuario)
     {
-        var b = new BitacoraIngreso { IdUsuario = idUsuario, DireccionIp = Ip, FechaHoraEntrada = DateTime.Now };
-        db.BitacoraIngresos.Add(b);
-        await db.SaveChangesAsync();
-        return b.IdBitacoraIngreso;
+        var ingreso = new BitacoraIngreso { IdUsuario = idUsuario, DireccionIp = Ip, FechaHoraEntrada = DateTime.Now };
+        contexto.BitacoraIngresos.Add(ingreso);
+        await contexto.SaveChangesAsync();
+        return ingreso.IdBitacoraIngreso;
     }
 
-    public async Task SalidaAsync(int idBitacoraIngreso)
+    public async Task SalidaAsync(int idBitacoraIngreso, string motivo)
     {
-        var b = await db.BitacoraIngresos.FindAsync(idBitacoraIngreso);
-        if (b is null) return;
-        b.FechaHoraSalida = DateTime.Now;
-        await db.SaveChangesAsync();
+        var ingreso = await contexto.BitacoraIngresos.FindAsync(idBitacoraIngreso);
+        if (ingreso is null || ingreso.FechaHoraSalida is not null) return;
+        ingreso.FechaHoraSalida = DateTime.Now;
+        ingreso.MotivoSalida = motivo;
+        await contexto.SaveChangesAsync();
     }
 
     public async Task MovimientoAsync(int idUsuario, string modulo, string tipo, string? detalle)
     {
-        db.BitacoraMovimientos.Add(new BitacoraMovimiento
+        contexto.BitacoraMovimientos.Add(new BitacoraMovimiento
         {
             IdUsuario = idUsuario, DireccionIp = Ip, FechaHora = DateTime.Now,
             Modulo = modulo, TipoMovimiento = tipo, Detalle = detalle
         });
-        await db.SaveChangesAsync();
+        await contexto.SaveChangesAsync();
     }
 }

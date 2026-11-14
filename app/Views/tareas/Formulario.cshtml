@@ -36,9 +36,9 @@
             <div class="field full">
                 <label>Usuarios asignados</label>
                 <div class="checks">
-                    @foreach (var o in usuarios)
+                    @foreach (var opcionUsuario in usuarios)
                     {
-                        <label class="check"><input type="checkbox" name="IdsUsuarios" value="@o.Id" checked="@Model.IdsUsuarios.Contains(o.Id)" /> @o.Texto</label>
+                        <label class="check"><input type="checkbox" name="IdsUsuarios" value="@opcionUsuario.Id" checked="@Model.IdsUsuarios.Contains(opcionUsuario.Id)" /> @opcionUsuario.Texto</label>
                     }
                 </div>
                 <span asp-validation-for="IdsUsuarios" class="field-error"></span>

@@ -46,9 +46,10 @@ public class BitacoraIngreso
 {
     [Key, Column("id_bitacora_ingreso")] public int IdBitacoraIngreso { get; set; }
     [Column("id_usuario")] public int IdUsuario { get; set; }
-    [Column("direccion_ip")] public string DireccionIp { get; set; } = "";
+    [MaxLength(45), Column("direccion_ip")] public string DireccionIp { get; set; } = "";
     [Column("fecha_hora_entrada")] public DateTime FechaHoraEntrada { get; set; }
     [Column("fecha_hora_salida")] public DateTime? FechaHoraSalida { get; set; }
+    [Column("motivo_salida")] public string? MotivoSalida { get; set; }
 }
 
 [Table("bitacora_movimientos")]
@@ -56,7 +57,7 @@ public class BitacoraMovimiento
 {
     [Key, Column("id_movimiento")] public int IdMovimiento { get; set; }
     [Column("id_usuario")] public int IdUsuario { get; set; }
-    [Column("direccion_ip")] public string DireccionIp { get; set; } = "";
+    [MaxLength(45), Column("direccion_ip")] public string DireccionIp { get; set; } = "";
     [Column("fecha_hora")] public DateTime FechaHora { get; set; }
     [Column("modulo")] public string Modulo { get; set; } = "";
     [Column("tipo_movimiento")] public string TipoMovimiento { get; set; } = "";

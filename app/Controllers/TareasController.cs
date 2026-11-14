@@ -3,6 +3,7 @@ using Controlex.Web.Models;
 using Controlex.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 namespace Controlex.Web.Controllers;
 
@@ -11,16 +12,15 @@ namespace Controlex.Web.Controllers;
 /// Acceso parcial (Empleado): solo ve sus tareas, registra tiempo, cambia el estado y escribe comentarios.
 /// </summary>
 [RequiereModulo("TAREAS", 1)]
-public class TareasController(ControlexDbContext db, BitacoraService bitacora) : Controller
+public class TareasController(ControlexDbContext contexto, BitacoraService bitacora) : Controller
 {
-    private const int Limite = 200;
     private int IdActual => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-    private bool Total => int.TryParse(User.FindFirst("perm:TAREAS")?.Value, out var n) && n >= 2;
+    private bool Total => int.TryParse(User.FindFirst("perm:TAREAS")?.Value, out var nivel) && nivel >= 2;
     private static DateOnly Hoy => DateOnly.FromDateTime(DateTime.Today);
-    private static DateOnly? ADate(DateTime? d) => d is null ? (DateOnly?)null : DateOnly.FromDateTime(d.Value);
+    private static DateOnly? ADate(DateTime? fecha) => fecha is null ? (DateOnly?)null : DateOnly.FromDateTime(fecha.Value);
 
     private Task<bool> EstaAsignado(int idTarea, int idUsuario) =>
-        db.TareaUsuarios.AnyAsync(a => a.IdTarea == idTarea && a.IdUsuario == idUsuario);
+        contexto.TareaUsuarios.AnyAsync(asignacion => asignacion.IdTarea == idTarea && asignacion.IdUsuario == idUsuario);
 
     private IActionResult Fallo(int id, string mensaje)
     {
@@ -29,108 +29,149 @@ public class TareasController(ControlexDbContext db, BitacoraService bitacora) :
     }
 
     // ---------- Ver tareas ----------
-    public async Task<IActionResult> Index(int? idProyecto, int? idEstado, int? idUsuario)
+    public async Task<IActionResult> Index(int? idProyecto, int? idEstado, int? idUsuario, int pagina = 1)
     {
-        var yo = IdActual;
-        var q = db.Tareas.AsNoTracking().AsQueryable();
+        var idUsuarioActual = IdActual;
+        var consulta = contexto.Tareas.AsNoTracking().AsQueryable();
         if (!Total)
         {
-            q = q.Where(t => db.TareaUsuarios.Any(a => a.IdTarea == t.IdTarea && a.IdUsuario == yo));
+            consulta = consulta.Where(tarea =>
+                contexto.TareaUsuarios.Any(asignacion => asignacion.IdTarea == tarea.IdTarea &&
+                    asignacion.IdUsuario == idUsuarioActual));
             idUsuario = null;
         }
-        if (idProyecto is int p) q = q.Where(t => t.IdProyecto == p);
-        if (idEstado is int e) q = q.Where(t => t.IdEstado == e);
-        if (idUsuario is int u) q = q.Where(t => db.TareaUsuarios.Any(a => a.IdTarea == t.IdTarea && a.IdUsuario == u));
+        if (idProyecto is int idProyectoSeleccionado)
+            consulta = consulta.Where(tarea => tarea.IdProyecto == idProyectoSeleccionado);
+        if (idEstado is int idEstadoSeleccionado)
+            consulta = consulta.Where(tarea => tarea.IdEstado == idEstadoSeleccionado);
+        if (idUsuario is int idUsuarioSeleccionado)
+            consulta = consulta.Where(tarea => contexto.TareaUsuarios.Any(asignacion =>
+                asignacion.IdTarea == tarea.IdTarea && asignacion.IdUsuario == idUsuarioSeleccionado));
 
-        var tareas = await q.OrderByDescending(t => t.IdTarea).Take(Limite + 1).Select(t => new
+        var filtrosRuta = new RouteValueDictionary();
+        if (idProyecto is int proyectoSeleccionado) filtrosRuta["idProyecto"] = proyectoSeleccionado;
+        if (idEstado is int estadoSeleccionado) filtrosRuta["idEstado"] = estadoSeleccionado;
+        if (idUsuario is int usuarioSeleccionado) filtrosRuta["idUsuario"] = usuarioSeleccionado;
+        var paginacion = Paginacion.Crear("Tareas", nameof(Index), pagina, await consulta.CountAsync(), filtrosRuta);
+        var tareas = await consulta.OrderByDescending(tarea => tarea.IdTarea)
+            .Skip((paginacion.Pagina - 1) * paginacion.Tam).Take(paginacion.Tam).Select(tarea => new
         {
-            t.IdTarea, t.Codigo, t.Nombre,
-            Proyecto = t.Proyecto.Nombre, Categoria = t.Categoria.Nombre, Estado = t.EstadoActual.Nombre,
-            t.FechaInicio, t.FechaFin, t.TiempoEstimado
+            tarea.IdTarea, tarea.Codigo, tarea.Nombre,
+            Proyecto = tarea.Proyecto.Nombre, Categoria = tarea.Categoria.Nombre, Estado = tarea.EstadoActual.Nombre,
+            tarea.FechaInicio, tarea.FechaFin, tarea.TiempoEstimado
         }).ToListAsync();
-        var hayMas = tareas.Count > Limite;
-        if (hayMas) tareas = tareas.Take(Limite).ToList();
 
-        var ids = tareas.Select(t => t.IdTarea).ToList();
-        var asignados = (await db.TareaUsuarios.AsNoTracking().Where(a => ids.Contains(a.IdTarea))
-            .Select(a => new { a.IdTarea, Nombre = a.Usuario.Nombre + " " + a.Usuario.Apellido1 }).ToListAsync())
-            .ToLookup(a => a.IdTarea, a => a.Nombre);
-        var horas = await db.RegistrosTiempo.AsNoTracking().Where(r => ids.Contains(r.IdTarea))
-            .GroupBy(r => r.IdTarea).Select(g => new { IdTarea = g.Key, Horas = g.Sum(r => r.Horas) })
-            .ToDictionaryAsync(x => x.IdTarea, x => x.Horas);
+        var identificadoresTareas = tareas.Select(tarea => tarea.IdTarea).ToList();
+        var asignados = (await contexto.TareaUsuarios.AsNoTracking()
+            .Where(asignacion => identificadoresTareas.Contains(asignacion.IdTarea))
+            .Select(asignacion => new
+            {
+                asignacion.IdTarea,
+                Nombre = asignacion.Usuario.Nombre + " " + asignacion.Usuario.Apellido1
+            }).ToListAsync())
+            .ToLookup(asignacion => asignacion.IdTarea, asignacion => asignacion.Nombre);
+        var horasPorTarea = await contexto.RegistrosTiempo.AsNoTracking()
+            .Where(registro => identificadoresTareas.Contains(registro.IdTarea))
+            .GroupBy(registro => registro.IdTarea)
+            .Select(grupo => new { IdTarea = grupo.Key, Horas = grupo.Sum(registro => registro.Horas) })
+            .ToDictionaryAsync(resumen => resumen.IdTarea, resumen => resumen.Horas);
 
-        var filas = tareas.Select(t => new TareaListado(t.IdTarea, t.Codigo, t.Nombre, t.Proyecto, t.Categoria,
-            string.Join(", ", asignados[t.IdTarea]), t.Estado, t.FechaInicio, t.FechaFin,
-            t.TiempoEstimado, horas.GetValueOrDefault(t.IdTarea, 0m))).ToList();
+        var filas = tareas.Select(tarea => new TareaListado(tarea.IdTarea, tarea.Codigo, tarea.Nombre,
+            tarea.Proyecto, tarea.Categoria, string.Join(", ", asignados[tarea.IdTarea]), tarea.Estado,
+            tarea.FechaInicio, tarea.FechaFin, tarea.TiempoEstimado,
+            horasPorTarea.GetValueOrDefault(tarea.IdTarea, 0m))).ToList();
 
         await CargarFiltros(idProyecto, idEstado, idUsuario);
-        return View(new TareasIndexViewModel { Filas = filas, HayMas = hayMas, Total = Total, Limite = Limite });
+        return View(new TareasIndexViewModel { Filas = filas, Total = Total, Paginacion = paginacion });
     }
 
     // ---------- Consultar / registrar tiempo y estado ----------
-    public async Task<IActionResult> Detalle(int id)
+    public async Task<IActionResult> Detalle(int id, int pagina = 1)
     {
-        var yo = IdActual;
-        var asignado = await EstaAsignado(id, yo);
+        var idUsuarioActual = IdActual;
+        var asignado = await EstaAsignado(id, idUsuarioActual);
         if (!Total && !asignado) return Forbid();
 
-        var t = await db.Tareas.AsNoTracking().Where(x => x.IdTarea == id).Select(x => new
+        var tarea = await contexto.Tareas.AsNoTracking().Where(registro => registro.IdTarea == id).Select(registro => new
         {
-            x.IdTarea, x.Codigo, x.Nombre, x.Descripcion,
-            Proyecto = x.Proyecto.Codigo + " · " + x.Proyecto.Nombre, Categoria = x.Categoria.Nombre,
-            x.IdEstado, Estado = x.EstadoActual.Nombre, x.FechaInicio, x.FechaFin, x.TiempoEstimado, x.Comentarios
+            registro.IdTarea, registro.Codigo, registro.Nombre, registro.Descripcion,
+            Proyecto = registro.Proyecto.Codigo + " · " + registro.Proyecto.Nombre, Categoria = registro.Categoria.Nombre,
+            registro.IdEstado, Estado = registro.EstadoActual.Nombre, registro.FechaInicio, registro.FechaFin,
+            registro.TiempoEstimado, registro.Comentarios
         }).FirstOrDefaultAsync();
-        if (t is null) return NotFound();
+        if (tarea is null) return NotFound();
 
-        var usuarios = await db.TareaUsuarios.AsNoTracking().Where(a => a.IdTarea == id)
-            .Select(a => new { a.IdUsuario, Nombre = a.Usuario.Nombre + " " + a.Usuario.Apellido1 }).ToListAsync();
-        var nombres = usuarios.ToDictionary(u => u.IdUsuario, u => u.Nombre);
-        var registros = await db.RegistrosTiempo.AsNoTracking().Where(r => r.IdTarea == id)
-            .OrderByDescending(r => r.FechaRegistro).ThenByDescending(r => r.IdRegistro).ToListAsync();
+        var usuariosAsignados = await contexto.TareaUsuarios.AsNoTracking()
+            .Where(asignacion => asignacion.IdTarea == id)
+            .Select(asignacion => new
+            {
+                asignacion.IdUsuario,
+                Nombre = asignacion.Usuario.Nombre + " " + asignacion.Usuario.Apellido1
+            }).ToListAsync();
+        var nombresUsuarios = usuariosAsignados.ToDictionary(usuario => usuario.IdUsuario, usuario => usuario.Nombre);
+        var consultaRegistros = contexto.RegistrosTiempo.AsNoTracking().Where(registro => registro.IdTarea == id);
+        var totalRegistros = await consultaRegistros.CountAsync();
+        var paginacion = Paginacion.Crear("Tareas", nameof(Detalle), pagina, totalRegistros,
+            new RouteValueDictionary { ["id"] = id });
+        var horasPorUsuario = await consultaRegistros.GroupBy(registro => registro.IdUsuario)
+            .Select(grupo => new { IdUsuario = grupo.Key, Horas = grupo.Sum(registro => registro.Horas) })
+            .ToDictionaryAsync(resumen => resumen.IdUsuario, resumen => resumen.Horas);
+        var registros = await consultaRegistros.OrderByDescending(registro => registro.FechaRegistro)
+            .ThenByDescending(registro => registro.IdRegistro)
+            .Skip((paginacion.Pagina - 1) * paginacion.Tam).Take(paginacion.Tam).ToListAsync();
         var hoy = DateTime.Today;
 
-        var vm = new TareaDetalleViewModel
+        var modeloVista = new TareaDetalleViewModel
         {
-            IdTarea = t.IdTarea, Codigo = t.Codigo, Nombre = t.Nombre, Descripcion = t.Descripcion, Proyecto = t.Proyecto,
-            Categoria = t.Categoria, Estado = t.Estado, FechaInicio = t.FechaInicio, FechaFin = t.FechaFin,
-            Estimado = t.TiempoEstimado, Comentarios = t.Comentarios,
-            Asignados = usuarios.Select(u => new AsignadoItem(u.IdUsuario, u.Nombre,
-                registros.Where(r => r.IdUsuario == u.IdUsuario).Sum(r => r.Horas))).ToList(),
-            Registros = registros.Select(r => new RegistroItem(r.IdRegistro, r.FechaRegistro, r.IdUsuario,
-                nombres.GetValueOrDefault(r.IdUsuario, "—"), r.Horas, r.CostoHora, r.Comentario,
-                Total || (r.IdUsuario == yo && r.FechaCreacion.Date == hoy))).ToList(),
-            PuedeEditar = Total, VerCostos = Total, ElegirUsuario = Total, IdUsuarioActual = yo, EsAsignado = asignado
+            IdTarea = tarea.IdTarea, Codigo = tarea.Codigo, Nombre = tarea.Nombre,
+            Descripcion = tarea.Descripcion, Proyecto = tarea.Proyecto,
+            Categoria = tarea.Categoria, Estado = tarea.Estado, FechaInicio = tarea.FechaInicio, FechaFin = tarea.FechaFin,
+            Estimado = tarea.TiempoEstimado, Comentarios = tarea.Comentarios,
+            Asignados = usuariosAsignados.Select(usuario => new AsignadoItem(usuario.IdUsuario, usuario.Nombre,
+                horasPorUsuario.GetValueOrDefault(usuario.IdUsuario, 0m))).ToList(),
+            Registros = registros.Select(registro => new RegistroItem(registro.IdRegistro, registro.FechaRegistro,
+                registro.IdUsuario, nombresUsuarios.GetValueOrDefault(registro.IdUsuario, "—"),
+                registro.Horas, registro.CostoHora, registro.Comentario,
+                Total || (registro.IdUsuario == idUsuarioActual && registro.FechaCreacion.Date == hoy))).ToList(),
+            PuedeEditar = Total, VerCostos = Total, ElegirUsuario = Total,
+            IdUsuarioActual = idUsuarioActual, EsAsignado = asignado,
+            TotalRegistrado = horasPorUsuario.Values.Sum(), Paginacion = paginacion
         };
         ViewBag.Estados = new SelectList(
-            await db.Estados.AsNoTracking().Where(e => e.TipoEstado == "TAREA").OrderBy(e => e.IdEstado).ToListAsync(),
-            "IdEstado", "Nombre", t.IdEstado);
-        return View(vm);
+            await contexto.Estados.AsNoTracking().Where(estado => estado.TipoEstado == "TAREA")
+                .OrderBy(estado => estado.IdEstado).ToListAsync(),
+            "IdEstado", "Nombre", tarea.IdEstado);
+        return View(modeloVista);
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> ActualizarEstado(int id, int idEstado, string? comentarios)
     {
-        var t = await db.Tareas.FindAsync(id);
-        if (t is null) return NotFound();
+        var tarea = await contexto.Tareas.FindAsync(id);
+        if (tarea is null) return NotFound();
         if (!Total && !await EstaAsignado(id, IdActual)) return Forbid();
 
-        var nuevo = await db.Estados.FirstOrDefaultAsync(e => e.IdEstado == idEstado && e.TipoEstado == "TAREA");
-        if (nuevo is null) return Fallo(id, "Seleccione un estado válido.");
+        var nuevoEstado = await contexto.Estados.FirstOrDefaultAsync(estado =>
+            estado.IdEstado == idEstado && estado.TipoEstado == "TAREA");
+        if (nuevoEstado is null) return Fallo(id, "Seleccione un estado válido.");
         if (comentarios is { Length: > 1000 }) return Fallo(id, "Los comentarios no pueden superar 1000 caracteres.");
 
-        var anterior = await db.Estados.Where(e => e.IdEstado == t.IdEstado).Select(e => e.Nombre).FirstAsync();
-        var cambioEstado = t.IdEstado != nuevo.IdEstado;
-        t.IdEstado = nuevo.IdEstado;
-        t.Comentarios = comentarios?.Trim();
+        var estadoAnterior = await contexto.Estados.Where(estado => estado.IdEstado == tarea.IdEstado)
+            .Select(estado => estado.Nombre).FirstAsync();
+        var cambioEstado = tarea.IdEstado != nuevoEstado.IdEstado;
+        tarea.IdEstado = nuevoEstado.IdEstado;
+        tarea.Comentarios = comentarios?.Trim();
         // Al pasar a "En proceso" o "Completada" se completan las fechas que estén vacías
-        if (nuevo.Nombre == "En proceso" && t.FechaInicio is null) t.FechaInicio = Hoy;
-        if (nuevo.Nombre == "Completada" && t.FechaFin is null) t.FechaFin = Hoy;
-        await db.SaveChangesAsync();
+        if (nuevoEstado.Nombre == "En proceso" && tarea.FechaInicio is null) tarea.FechaInicio = Hoy;
+        if (nuevoEstado.Nombre == "Completada" && tarea.FechaFin is null) tarea.FechaFin = Hoy;
+        await contexto.SaveChangesAsync();
 
         if (cambioEstado)
-            await bitacora.MovimientoAsync(IdActual, "TAREAS", "CAMBIO DE ESTADO", $"Tarea {t.Codigo}: {anterior} → {nuevo.Nombre}");
+            await bitacora.MovimientoAsync(IdActual, "TAREAS", "CAMBIO DE ESTADO",
+                $"Tarea {tarea.Codigo}: {estadoAnterior} → {nuevoEstado.Nombre}");
         else
-            await bitacora.MovimientoAsync(IdActual, "TAREAS", "MODIFICACIÓN", $"Tarea {t.Codigo}: comentarios actualizados");
+            await bitacora.MovimientoAsync(IdActual, "TAREAS", "MODIFICACIÓN",
+                $"Tarea {tarea.Codigo}: comentarios actualizados");
 
         TempData["Mensaje"] = "Tarea actualizada.";
         return RedirectToAction(nameof(Detalle), new { id });
@@ -139,37 +180,40 @@ public class TareasController(ControlexDbContext db, BitacoraService bitacora) :
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> RegistrarTiempo(int id, int? idUsuario, DateTime? fecha, decimal? horas, string? comentario)
     {
-        var codigo = await db.Tareas.Where(t => t.IdTarea == id).Select(t => t.Codigo).FirstOrDefaultAsync();
+        var codigo = await contexto.Tareas.Where(tarea => tarea.IdTarea == id)
+            .Select(tarea => tarea.Codigo).FirstOrDefaultAsync();
         if (codigo is null) return NotFound();
-        var yo = IdActual;
-        if (!Total && !await EstaAsignado(id, yo)) return Forbid();
+        var idUsuarioActual = IdActual;
+        if (!Total && !await EstaAsignado(id, idUsuarioActual)) return Forbid();
 
-        var uid = Total ? (idUsuario ?? 0) : yo;
-        if (uid == 0) return Fallo(id, "Seleccione el usuario.");
-        if (!await EstaAsignado(id, uid)) return Fallo(id, "El usuario debe estar asignado a la tarea para registrar tiempo.");
+        var idUsuarioSeleccionado = Total ? (idUsuario ?? 0) : idUsuarioActual;
+        if (idUsuarioSeleccionado == 0) return Fallo(id, "Seleccione el usuario.");
+        if (!await EstaAsignado(id, idUsuarioSeleccionado))
+            return Fallo(id, "El usuario debe estar asignado a la tarea para registrar tiempo.");
         if (fecha is null) return Fallo(id, "Ingrese la fecha.");
-        var dia = DateOnly.FromDateTime(fecha.Value);
-        if (dia > Hoy) return Fallo(id, "La fecha no puede ser futura.");
+        var diaRegistro = DateOnly.FromDateTime(fecha.Value);
+        if (diaRegistro > Hoy) return Fallo(id, "La fecha no puede ser futura.");
         if (horas is null || horas.Value <= 0) return Fallo(id, "Ingrese las horas trabajadas (mayor que cero).");
         if (horas.Value > 24) return Fallo(id, "No puede registrar más de 24 horas en un día.");
         if (comentario is { Length: > 500 }) return Fallo(id, "El comentario no puede superar 500 caracteres.");
 
-        var h = Math.Round(horas.Value, 2);
-        var yaEseDia = await db.RegistrosTiempo.Where(r => r.IdUsuario == uid && r.FechaRegistro == dia)
-            .SumAsync(r => (decimal?)r.Horas) ?? 0m;
-        if (yaEseDia + h > 24)
-            return Fallo(id, $"Ese día ya tiene {yaEseDia:0.##} h registradas entre todas las tareas; el máximo es 24 h.");
+        var horasRedondeadas = Math.Round(horas.Value, 2);
+        var horasRegistradasEseDia = await contexto.RegistrosTiempo
+            .Where(registro => registro.IdUsuario == idUsuarioSeleccionado && registro.FechaRegistro == diaRegistro)
+            .SumAsync(registro => (decimal?)registro.Horas) ?? 0m;
+        if (horasRegistradasEseDia + horasRedondeadas > 24)
+            return Fallo(id, $"Ese día ya tiene {horasRegistradasEseDia:0.##} h registradas entre todas las tareas; el máximo es 24 h.");
 
-        var usuario = await db.Usuarios.FindAsync(uid);
-        db.RegistrosTiempo.Add(new RegistroTiempo
+        var usuario = await contexto.Usuarios.FindAsync(idUsuarioSeleccionado);
+        contexto.RegistrosTiempo.Add(new RegistroTiempo
         {
-            IdTarea = id, IdUsuario = uid, FechaRegistro = dia, Horas = h,
+            IdTarea = id, IdUsuario = idUsuarioSeleccionado, FechaRegistro = diaRegistro, Horas = horasRedondeadas,
             CostoHora = usuario!.CostoHora,   // costo por hora vigente en este momento
             Comentario = comentario?.Trim(), FechaCreacion = DateTime.Now
         });
-        await db.SaveChangesAsync();
-        await bitacora.MovimientoAsync(yo, "TAREAS", "REGISTRO DE TIEMPO",
-            $"Tarea {codigo}: {h:0.##} h el {dia:dd/MM/yyyy} ({usuario.NombreUsuario})");
+        await contexto.SaveChangesAsync();
+        await bitacora.MovimientoAsync(idUsuarioActual, "TAREAS", "REGISTRO DE TIEMPO",
+            $"Tarea {codigo}: {horasRedondeadas:0.##} h el {diaRegistro:dd/MM/yyyy} ({usuario.NombreUsuario})");
 
         TempData["Mensaje"] = usuario.CostoHora == 0
             ? "Tiempo registrado. Aviso: el costo por hora de ese usuario es ₡0; defínalo en Usuarios para que el costo del proyecto sea real."
@@ -180,17 +224,19 @@ public class TareasController(ControlexDbContext db, BitacoraService bitacora) :
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> EliminarRegistro(int id, int idRegistro)
     {
-        var r = await db.RegistrosTiempo.FirstOrDefaultAsync(x => x.IdRegistro == idRegistro && x.IdTarea == id);
-        if (r is null) return NotFound();
+        var registro = await contexto.RegistrosTiempo.FirstOrDefaultAsync(registro =>
+            registro.IdRegistro == idRegistro && registro.IdTarea == id);
+        if (registro is null) return NotFound();
         // El acceso total elimina cualquiera; los demás, solo el propio y registrado hoy
-        var propio = r.IdUsuario == IdActual && r.FechaCreacion.Date == DateTime.Today;
-        if (!Total && !propio) return Forbid();
+        var esPropio = registro.IdUsuario == IdActual && registro.FechaCreacion.Date == DateTime.Today;
+        if (!Total && !esPropio) return Forbid();
 
-        var codigo = await db.Tareas.Where(t => t.IdTarea == id).Select(t => t.Codigo).FirstAsync();
-        db.RegistrosTiempo.Remove(r);
-        await db.SaveChangesAsync();
+        var codigo = await contexto.Tareas.Where(tarea => tarea.IdTarea == id)
+            .Select(tarea => tarea.Codigo).FirstAsync();
+        contexto.RegistrosTiempo.Remove(registro);
+        await contexto.SaveChangesAsync();
         await bitacora.MovimientoAsync(IdActual, "TAREAS", "ELIMINACIÓN",
-            $"Tarea {codigo}: registro de {r.Horas:0.##} h del {r.FechaRegistro:dd/MM/yyyy}");
+            $"Tarea {codigo}: registro de {registro.Horas:0.##} h del {registro.FechaRegistro:dd/MM/yyyy}");
         TempData["Mensaje"] = "Registro de tiempo eliminado.";
         return RedirectToAction(nameof(Detalle), new { id });
     }
@@ -200,177 +246,208 @@ public class TareasController(ControlexDbContext db, BitacoraService bitacora) :
     [RequiereModulo("TAREAS", 2), HttpGet]
     public async Task<IActionResult> Crear(int? idProyecto)
     {
-        var pendiente = await db.Estados.Where(e => e.TipoEstado == "TAREA" && e.Nombre == "Pendiente")
-            .Select(e => e.IdEstado).FirstOrDefaultAsync();
-        var m = new TareaViewModel { IdEstado = pendiente };
+        var idEstadoPendiente = await contexto.Estados.Where(estado =>
+                estado.TipoEstado == "TAREA" && estado.Nombre == "Pendiente")
+            .Select(estado => estado.IdEstado).FirstOrDefaultAsync();
+        var modeloTarea = new TareaViewModel { IdEstado = idEstadoPendiente };
 
-        if (idProyecto is int ip)
+        if (idProyecto is int idProyectoSeleccionado)
         {
-            var estado = await db.Proyectos.Where(p => p.IdProyecto == ip).Select(p => p.EstadoActual.Nombre).FirstOrDefaultAsync();
-            if (estado is null) TempData["Error"] = "El proyecto indicado no existe.";
-            else if (estado is "Finalizado" or "Cancelado") TempData["Error"] = "El proyecto está finalizado o cancelado y no admite tareas nuevas.";
-            else m.IdProyecto = ip;
+            var estadoProyecto = await contexto.Proyectos.Where(proyecto => proyecto.IdProyecto == idProyectoSeleccionado)
+                .Select(proyecto => proyecto.EstadoActual.Nombre).FirstOrDefaultAsync();
+            if (estadoProyecto is null) TempData["Error"] = "El proyecto indicado no existe.";
+            else if (estadoProyecto is "Finalizado" or "Cancelado")
+                TempData["Error"] = "El proyecto está finalizado o cancelado y no admite tareas nuevas.";
+            else modeloTarea.IdProyecto = idProyectoSeleccionado;
         }
-        await PrepararFormulario(m);
-        return View("Formulario", m);
+        await PrepararFormulario(modeloTarea);
+        return View("Formulario", modeloTarea);
     }
 
     [RequiereModulo("TAREAS", 2), HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Crear(TareaViewModel m)
+    public async Task<IActionResult> Crear(TareaViewModel modeloTarea)
     {
-        await Validar(m, null, new List<int>());
-        if (!ModelState.IsValid) { await PrepararFormulario(m); return View("Formulario", m); }
+        await Validar(modeloTarea, null, new List<int>());
+        if (!ModelState.IsValid) { await PrepararFormulario(modeloTarea); return View("Formulario", modeloTarea); }
 
-        await using var tx = await db.Database.BeginTransactionAsync();
-        var t = new Tarea
+        await using var transaccion = await contexto.Database.BeginTransactionAsync();
+        var tarea = new Tarea
         {
-            Nombre = m.Nombre.Trim(), Descripcion = m.Descripcion?.Trim(), IdProyecto = m.IdProyecto, IdCategoria = m.IdCategoria,
-            IdEstado = m.IdEstado, FechaInicio = ADate(m.FechaInicio), FechaFin = ADate(m.FechaFin),
-            TiempoEstimado = m.TiempoEstimado, Comentarios = m.Comentarios?.Trim(), FechaCreacion = DateTime.Now
+            Nombre = modeloTarea.Nombre.Trim(), Descripcion = modeloTarea.Descripcion?.Trim(),
+            IdProyecto = modeloTarea.IdProyecto, IdCategoria = modeloTarea.IdCategoria,
+            IdEstado = modeloTarea.IdEstado, FechaInicio = ADate(modeloTarea.FechaInicio),
+            FechaFin = ADate(modeloTarea.FechaFin), TiempoEstimado = modeloTarea.TiempoEstimado,
+            Comentarios = modeloTarea.Comentarios?.Trim(), FechaCreacion = DateTime.Now
         };
-        db.Tareas.Add(t);
-        await db.SaveChangesAsync();
-        foreach (var uid in m.IdsUsuarios.Distinct())
-            db.TareaUsuarios.Add(new TareaUsuario { IdTarea = t.IdTarea, IdUsuario = uid, FechaAsignacion = DateTime.Now });
-        await db.SaveChangesAsync();
-        await tx.CommitAsync();
+        contexto.Tareas.Add(tarea);
+        await contexto.SaveChangesAsync();
+        foreach (var idUsuarioAsignado in modeloTarea.IdsUsuarios.Distinct())
+            contexto.TareaUsuarios.Add(new TareaUsuario
+                { IdTarea = tarea.IdTarea, IdUsuario = idUsuarioAsignado, FechaAsignacion = DateTime.Now });
+        await contexto.SaveChangesAsync();
+        await transaccion.CommitAsync();
 
-        await bitacora.MovimientoAsync(IdActual, "TAREAS", "INSERCIÓN", $"Tarea creada: {t.Codigo} {t.Nombre}");
-        TempData["Mensaje"] = $"Tarea creada ({t.Codigo}).";
-        return RedirectToAction(nameof(Detalle), new { id = t.IdTarea });
+        await bitacora.MovimientoAsync(IdActual, "TAREAS", "INSERCIÓN",
+            $"Tarea creada: {tarea.Codigo} {tarea.Nombre}");
+        TempData["Mensaje"] = $"Tarea creada ({tarea.Codigo}).";
+        return RedirectToAction(nameof(Detalle), new { id = tarea.IdTarea });
     }
 
     [RequiereModulo("TAREAS", 2), HttpGet]
     public async Task<IActionResult> Editar(int id)
     {
-        var t = await db.Tareas.AsNoTracking().FirstOrDefaultAsync(x => x.IdTarea == id);
-        if (t is null) return NotFound();
-        var m = new TareaViewModel
+        var tarea = await contexto.Tareas.AsNoTracking().FirstOrDefaultAsync(registro => registro.IdTarea == id);
+        if (tarea is null) return NotFound();
+        var modeloTarea = new TareaViewModel
         {
-            IdTarea = t.IdTarea, Codigo = t.Codigo, Nombre = t.Nombre, Descripcion = t.Descripcion, IdProyecto = t.IdProyecto,
-            IdCategoria = t.IdCategoria, IdEstado = t.IdEstado,
-            FechaInicio = t.FechaInicio?.ToDateTime(TimeOnly.MinValue), FechaFin = t.FechaFin?.ToDateTime(TimeOnly.MinValue),
-            TiempoEstimado = t.TiempoEstimado, Comentarios = t.Comentarios,
-            IdsUsuarios = await db.TareaUsuarios.Where(a => a.IdTarea == id).Select(a => a.IdUsuario).ToListAsync()
+            IdTarea = tarea.IdTarea, Codigo = tarea.Codigo, Nombre = tarea.Nombre,
+            Descripcion = tarea.Descripcion, IdProyecto = tarea.IdProyecto,
+            IdCategoria = tarea.IdCategoria, IdEstado = tarea.IdEstado,
+            FechaInicio = tarea.FechaInicio?.ToDateTime(TimeOnly.MinValue),
+            FechaFin = tarea.FechaFin?.ToDateTime(TimeOnly.MinValue),
+            TiempoEstimado = tarea.TiempoEstimado, Comentarios = tarea.Comentarios,
+            IdsUsuarios = await contexto.TareaUsuarios.Where(asignacion => asignacion.IdTarea == id)
+                .Select(asignacion => asignacion.IdUsuario).ToListAsync()
         };
-        await PrepararFormulario(m);
-        return View("Formulario", m);
+        await PrepararFormulario(modeloTarea);
+        return View("Formulario", modeloTarea);
     }
 
     [RequiereModulo("TAREAS", 2), HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Editar(int id, TareaViewModel m)
+    public async Task<IActionResult> Editar(int id, TareaViewModel modeloTarea)
     {
-        var t = await db.Tareas.FindAsync(id);
-        if (t is null) return NotFound();
-        m.IdTarea = id;
-        m.Codigo = t.Codigo;
+        var tarea = await contexto.Tareas.FindAsync(id);
+        if (tarea is null) return NotFound();
+        modeloTarea.IdTarea = id;
+        modeloTarea.Codigo = tarea.Codigo;
 
-        var actuales = await db.TareaUsuarios.Where(a => a.IdTarea == id).ToListAsync();
-        var yaIds = actuales.Select(a => a.IdUsuario).ToList();
-        await Validar(m, t.IdProyecto, yaIds);
+        var asignacionesActuales = await contexto.TareaUsuarios.Where(asignacion => asignacion.IdTarea == id).ToListAsync();
+        var idsUsuariosActuales = asignacionesActuales.Select(asignacion => asignacion.IdUsuario).ToList();
+        await Validar(modeloTarea, tarea.IdProyecto, idsUsuariosActuales);
 
         // No se puede quitar a quien ya registró tiempo (el costo del proyecto depende de esos registros)
-        var seleccion = m.IdsUsuarios.Distinct().ToList();
-        var quitar = yaIds.Except(seleccion).ToList();
-        if (quitar.Count > 0)
+        var idsUsuariosSeleccionados = modeloTarea.IdsUsuarios.Distinct().ToList();
+        var idsUsuariosPorQuitar = idsUsuariosActuales.Except(idsUsuariosSeleccionados).ToList();
+        if (idsUsuariosPorQuitar.Count > 0)
         {
-            var conTiempo = await db.RegistrosTiempo.Where(r => r.IdTarea == id && quitar.Contains(r.IdUsuario))
-                .Select(r => r.IdUsuario).Distinct().ToListAsync();
-            if (conTiempo.Count > 0)
+            var idsUsuariosConTiempo = await contexto.RegistrosTiempo
+                .Where(registro => registro.IdTarea == id && idsUsuariosPorQuitar.Contains(registro.IdUsuario))
+                .Select(registro => registro.IdUsuario).Distinct().ToListAsync();
+            if (idsUsuariosConTiempo.Count > 0)
             {
-                var nombres = await db.Usuarios.Where(u => conTiempo.Contains(u.IdUsuario))
-                    .Select(u => u.Nombre + " " + u.Apellido1).ToListAsync();
-                ModelState.AddModelError(nameof(m.IdsUsuarios),
-                    $"No puede quitar a {string.Join(", ", nombres)}: ya registró tiempo en esta tarea.");
+                var nombresUsuarios = await contexto.Usuarios.Where(usuario => idsUsuariosConTiempo.Contains(usuario.IdUsuario))
+                    .Select(usuario => usuario.Nombre + " " + usuario.Apellido1).ToListAsync();
+                ModelState.AddModelError(nameof(modeloTarea.IdsUsuarios),
+                    $"No puede quitar a {string.Join(", ", nombresUsuarios)}: ya registró tiempo en esta tarea.");
             }
         }
-        if (!ModelState.IsValid) { await PrepararFormulario(m); return View("Formulario", m); }
+        if (!ModelState.IsValid) { await PrepararFormulario(modeloTarea); return View("Formulario", modeloTarea); }
 
-        await using var tx = await db.Database.BeginTransactionAsync();
-        t.Nombre = m.Nombre.Trim(); t.Descripcion = m.Descripcion?.Trim(); t.IdProyecto = m.IdProyecto; t.IdCategoria = m.IdCategoria;
-        t.IdEstado = m.IdEstado; t.FechaInicio = ADate(m.FechaInicio); t.FechaFin = ADate(m.FechaFin);
-        t.TiempoEstimado = m.TiempoEstimado; t.Comentarios = m.Comentarios?.Trim();
-        db.TareaUsuarios.RemoveRange(actuales.Where(a => quitar.Contains(a.IdUsuario)));
-        foreach (var uid in seleccion.Except(yaIds))
-            db.TareaUsuarios.Add(new TareaUsuario { IdTarea = id, IdUsuario = uid, FechaAsignacion = DateTime.Now });
-        await db.SaveChangesAsync();
-        await tx.CommitAsync();
+        await using var transaccion = await contexto.Database.BeginTransactionAsync();
+        tarea.Nombre = modeloTarea.Nombre.Trim(); tarea.Descripcion = modeloTarea.Descripcion?.Trim();
+        tarea.IdProyecto = modeloTarea.IdProyecto; tarea.IdCategoria = modeloTarea.IdCategoria;
+        tarea.IdEstado = modeloTarea.IdEstado; tarea.FechaInicio = ADate(modeloTarea.FechaInicio);
+        tarea.FechaFin = ADate(modeloTarea.FechaFin); tarea.TiempoEstimado = modeloTarea.TiempoEstimado;
+        tarea.Comentarios = modeloTarea.Comentarios?.Trim();
+        contexto.TareaUsuarios.RemoveRange(asignacionesActuales
+            .Where(asignacion => idsUsuariosPorQuitar.Contains(asignacion.IdUsuario)));
+        foreach (var idUsuarioAsignado in idsUsuariosSeleccionados.Except(idsUsuariosActuales))
+            contexto.TareaUsuarios.Add(new TareaUsuario
+                { IdTarea = id, IdUsuario = idUsuarioAsignado, FechaAsignacion = DateTime.Now });
+        await contexto.SaveChangesAsync();
+        await transaccion.CommitAsync();
 
-        await bitacora.MovimientoAsync(IdActual, "TAREAS", "MODIFICACIÓN", $"Tarea modificada: {t.Codigo} {t.Nombre}");
+        await bitacora.MovimientoAsync(IdActual, "TAREAS", "MODIFICACIÓN",
+            $"Tarea modificada: {tarea.Codigo} {tarea.Nombre}");
         TempData["Mensaje"] = "Tarea actualizada.";
         return RedirectToAction(nameof(Detalle), new { id });
     }
 
     // ---------- apoyo ----------
-    private async Task Validar(TareaViewModel m, int? proyectoActual, List<int> yaAsignados)
+    private async Task Validar(TareaViewModel modeloTarea, int? proyectoActual, List<int> idsYaAsignados)
     {
-        if (m.FechaInicio is DateTime i && m.FechaFin is DateTime f && f.Date < i.Date)
-            ModelState.AddModelError(nameof(m.FechaFin), "La fecha de finalización no puede ser anterior a la de inicio.");
+        if (modeloTarea.FechaInicio is DateTime fechaInicio &&
+            modeloTarea.FechaFin is DateTime fechaFin && fechaFin.Date < fechaInicio.Date)
+            ModelState.AddModelError(nameof(modeloTarea.FechaFin),
+                "La fecha de finalización no puede ser anterior a la de inicio.");
 
-        if (m.IdProyecto > 0)
+        if (modeloTarea.IdProyecto > 0)
         {
-            var estado = await db.Proyectos.Where(p => p.IdProyecto == m.IdProyecto)
-                .Select(p => p.EstadoActual.Nombre).FirstOrDefaultAsync();
+            var estado = await contexto.Proyectos.Where(proyecto => proyecto.IdProyecto == modeloTarea.IdProyecto)
+                .Select(proyecto => proyecto.EstadoActual.Nombre).FirstOrDefaultAsync();
             if (estado is null)
-                ModelState.AddModelError(nameof(m.IdProyecto), "Seleccione un proyecto válido.");
-            else if (m.IdProyecto != proyectoActual && estado is "Finalizado" or "Cancelado")
-                ModelState.AddModelError(nameof(m.IdProyecto), "No se pueden agregar tareas a un proyecto finalizado o cancelado.");
+                ModelState.AddModelError(nameof(modeloTarea.IdProyecto), "Seleccione un proyecto válido.");
+            else if (modeloTarea.IdProyecto != proyectoActual && estado is "Finalizado" or "Cancelado")
+                ModelState.AddModelError(nameof(modeloTarea.IdProyecto),
+                    "No se pueden agregar tareas a un proyecto finalizado o cancelado.");
         }
-        if (m.IdCategoria > 0 && !await db.Categorias.AnyAsync(c => c.IdCategoria == m.IdCategoria))
-            ModelState.AddModelError(nameof(m.IdCategoria), "Seleccione una categoría válida.");
-        if (m.IdEstado > 0 && !await db.Estados.AnyAsync(e => e.IdEstado == m.IdEstado && e.TipoEstado == "TAREA"))
-            ModelState.AddModelError(nameof(m.IdEstado), "Seleccione un estado válido.");
+        if (modeloTarea.IdCategoria > 0 &&
+            !await contexto.Categorias.AnyAsync(categoria => categoria.IdCategoria == modeloTarea.IdCategoria))
+            ModelState.AddModelError(nameof(modeloTarea.IdCategoria), "Seleccione una categoría válida.");
+        if (modeloTarea.IdEstado > 0 &&
+            !await contexto.Estados.AnyAsync(estado => estado.IdEstado == modeloTarea.IdEstado && estado.TipoEstado == "TAREA"))
+            ModelState.AddModelError(nameof(modeloTarea.IdEstado), "Seleccione un estado válido.");
 
-        var ids = m.IdsUsuarios.Distinct().ToList();
-        if (ids.Count == 0)
+        var idsUsuarios = modeloTarea.IdsUsuarios.Distinct().ToList();
+        if (idsUsuarios.Count == 0)
         {
-            ModelState.AddModelError(nameof(m.IdsUsuarios), "Asigne la tarea al menos a un usuario.");
+            ModelState.AddModelError(nameof(modeloTarea.IdsUsuarios), "Asigne la tarea al menos a un usuario.");
             return;
         }
-        if (await db.Usuarios.CountAsync(u => ids.Contains(u.IdUsuario)) != ids.Count)
-            ModelState.AddModelError(nameof(m.IdsUsuarios), "Hay usuarios que no existen.");
-        var nuevos = ids.Except(yaAsignados).ToList();
-        if (nuevos.Count > 0 && await db.Usuarios.CountAsync(u => nuevos.Contains(u.IdUsuario) && u.Estado) != nuevos.Count)
-            ModelState.AddModelError(nameof(m.IdsUsuarios), "Solo se puede asignar a usuarios activos.");
+        if (await contexto.Usuarios.CountAsync(usuario => idsUsuarios.Contains(usuario.IdUsuario)) != idsUsuarios.Count)
+            ModelState.AddModelError(nameof(modeloTarea.IdsUsuarios), "Hay usuarios que no existen.");
+        var nuevosIdsUsuarios = idsUsuarios.Except(idsYaAsignados).ToList();
+        if (nuevosIdsUsuarios.Count > 0 &&
+            await contexto.Usuarios.CountAsync(usuario =>
+                nuevosIdsUsuarios.Contains(usuario.IdUsuario) && usuario.Estado) != nuevosIdsUsuarios.Count)
+            ModelState.AddModelError(nameof(modeloTarea.IdsUsuarios), "Solo se puede asignar a usuarios activos.");
     }
 
-    private async Task PrepararFormulario(TareaViewModel m)
+    private async Task PrepararFormulario(TareaViewModel modeloTarea)
     {
-        var idProyecto = m.IdProyecto;
-        var idCategoria = m.IdCategoria;
-        var asignados = m.IdsUsuarios.ToList();
+        var idProyectoSeleccionado = modeloTarea.IdProyecto;
+        var idCategoriaSeleccionada = modeloTarea.IdCategoria;
+        var idsUsuariosAsignados = modeloTarea.IdsUsuarios.ToList();
 
         ViewBag.Proyectos = new SelectList(
-            await db.Proyectos.AsNoTracking()
-                .Where(p => (p.EstadoActual.Nombre != "Finalizado" && p.EstadoActual.Nombre != "Cancelado") || p.IdProyecto == idProyecto)
-                .OrderBy(p => p.Codigo)
-                .Select(p => new { p.IdProyecto, Texto = p.Codigo + " · " + p.Nombre }).ToListAsync(),
-            "IdProyecto", "Texto", m.IdProyecto);
+            await contexto.Proyectos.AsNoTracking()
+                .Where(proyecto => (proyecto.EstadoActual.Nombre != "Finalizado" &&
+                                    proyecto.EstadoActual.Nombre != "Cancelado") ||
+                                   proyecto.IdProyecto == idProyectoSeleccionado)
+                .OrderBy(proyecto => proyecto.Codigo)
+                .Select(proyecto => new { proyecto.IdProyecto, Texto = proyecto.Codigo + " · " + proyecto.Nombre }).ToListAsync(),
+            "IdProyecto", "Texto", modeloTarea.IdProyecto);
         ViewBag.Categorias = new SelectList(
-            await db.Categorias.AsNoTracking().Where(c => c.Estado || c.IdCategoria == idCategoria).OrderBy(c => c.Nombre).ToListAsync(),
-            "IdCategoria", "Nombre", m.IdCategoria);
+            await contexto.Categorias.AsNoTracking()
+                .Where(categoria => categoria.Estado || categoria.IdCategoria == idCategoriaSeleccionada)
+                .OrderBy(categoria => categoria.Nombre).ToListAsync(),
+            "IdCategoria", "Nombre", modeloTarea.IdCategoria);
         ViewBag.Estados = new SelectList(
-            await db.Estados.AsNoTracking().Where(e => e.TipoEstado == "TAREA").OrderBy(e => e.IdEstado).ToListAsync(),
-            "IdEstado", "Nombre", m.IdEstado);
-        ViewBag.Usuarios = await db.Usuarios.AsNoTracking()
-            .Where(u => u.Estado || asignados.Contains(u.IdUsuario)).OrderBy(u => u.Nombre)
-            .Select(u => new OpcionUsuario(u.IdUsuario, u.Nombre + " " + u.Apellido1 + (u.Estado ? "" : " (inactivo)")))
+            await contexto.Estados.AsNoTracking().Where(estado => estado.TipoEstado == "TAREA")
+                .OrderBy(estado => estado.IdEstado).ToListAsync(),
+            "IdEstado", "Nombre", modeloTarea.IdEstado);
+        ViewBag.Usuarios = await contexto.Usuarios.AsNoTracking()
+            .Where(usuario => usuario.Estado || idsUsuariosAsignados.Contains(usuario.IdUsuario))
+            .OrderBy(usuario => usuario.Nombre)
+            .Select(usuario => new OpcionUsuario(usuario.IdUsuario,
+                usuario.Nombre + " " + usuario.Apellido1 + (usuario.Estado ? "" : " (inactivo)")))
             .ToListAsync();
     }
 
     private async Task CargarFiltros(int? idProyecto, int? idEstado, int? idUsuario)
     {
         ViewBag.Proyectos = new SelectList(
-            await db.Proyectos.AsNoTracking().OrderBy(p => p.Codigo)
-                .Select(p => new { p.IdProyecto, Texto = p.Codigo + " · " + p.Nombre }).ToListAsync(),
+            await contexto.Proyectos.AsNoTracking().OrderBy(proyecto => proyecto.Codigo)
+                .Select(proyecto => new { proyecto.IdProyecto, Texto = proyecto.Codigo + " · " + proyecto.Nombre }).ToListAsync(),
             "IdProyecto", "Texto", idProyecto);
         ViewBag.Estados = new SelectList(
-            await db.Estados.AsNoTracking().Where(e => e.TipoEstado == "TAREA").OrderBy(e => e.IdEstado).ToListAsync(),
+            await contexto.Estados.AsNoTracking().Where(estado => estado.TipoEstado == "TAREA")
+                .OrderBy(estado => estado.IdEstado).ToListAsync(),
             "IdEstado", "Nombre", idEstado);
         if (Total)
             ViewBag.Usuarios = new SelectList(
-                await db.Usuarios.AsNoTracking().OrderBy(u => u.Nombre)
-                    .Select(u => new { u.IdUsuario, Texto = u.Nombre + " " + u.Apellido1 }).ToListAsync(),
+                await contexto.Usuarios.AsNoTracking().OrderBy(usuario => usuario.Nombre)
+                    .Select(usuario => new { usuario.IdUsuario, Texto = usuario.Nombre + " " + usuario.Apellido1 }).ToListAsync(),
                 "IdUsuario", "Texto", idUsuario);
     }
 }

@@ -28,16 +28,16 @@
             <div class="table-wrap"><table class="grid">
                 <thead><tr><th>Código</th><th>Tarea</th><th>Proyecto</th><th>Estado</th><th>Vence</th></tr></thead>
                 <tbody>
-                @foreach (var t in Model.ProximasTareas)
+                @foreach (var tarea in Model.ProximasTareas)
                 {
                     <tr>
-                        <td>@t.Codigo</td>
-                        <td>@t.Nombre</td>
-                        <td>@t.Proyecto</td>
-                        <td><span class="pill @Formato.ClaseEstado(t.Estado)">@t.Estado</span></td>
+                        <td>@tarea.Codigo</td>
+                        <td>@tarea.Nombre</td>
+                        <td>@tarea.Proyecto</td>
+                        <td><span class="pill @Formato.ClaseEstado(tarea.Estado)">@tarea.Estado</span></td>
                         <td>
-                            @Formato.Fecha(t.FechaFin)
-                            @if (t.Vencida) { <span class="pill bad">Vencida</span> }
+                            @Formato.Fecha(tarea.FechaFin)
+                            @if (tarea.Vencida) { <span class="pill bad">Vencida</span> }
                         </td>
                     </tr>
                 }
@@ -59,13 +59,13 @@
                 <div class="table-wrap"><table class="grid">
                     <thead><tr><th>Código</th><th>Proyecto</th><th>Cliente</th><th>Fin previsto</th></tr></thead>
                     <tbody>
-                    @foreach (var p in Model.ProyectosActivos)
+                    @foreach (var proyecto in Model.ProyectosActivos)
                     {
                         <tr>
-                            <td>@p.Codigo</td>
-                            <td>@p.Nombre</td>
-                            <td>@p.Cliente</td>
-                            <td>@Formato.Fecha(p.FechaFin)</td>
+                            <td>@proyecto.Codigo</td>
+                            <td>@proyecto.Nombre</td>
+                            <td>@proyecto.Cliente</td>
+                            <td>@Formato.Fecha(proyecto.FechaFin)</td>
                         </tr>
                     }
                     </tbody>

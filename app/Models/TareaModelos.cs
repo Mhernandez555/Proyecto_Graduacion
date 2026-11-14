@@ -50,15 +50,14 @@ public record OpcionUsuario(int Id, string Texto);
 public record TareaListado(int IdTarea, string Codigo, string Nombre, string Proyecto, string Categoria, string Asignados,
     string Estado, DateOnly? FechaInicio, DateOnly? FechaFin, decimal Estimado, decimal Registrado)
 {
-    public bool Vencida => Estado != "Completada" && FechaFin is DateOnly f && f < DateOnly.FromDateTime(DateTime.Today);
+    public bool Vencida => Estado != "Completada" && FechaFin is DateOnly fechaFin && fechaFin < DateOnly.FromDateTime(DateTime.Today);
 }
 
 public class TareasIndexViewModel
 {
     public List<TareaListado> Filas { get; set; } = new();
-    public bool HayMas { get; set; }
     public bool Total { get; set; }
-    public int Limite { get; set; }
+    public Paginacion Paginacion { get; set; } = new();
 }
 
 public record AsignadoItem(int IdUsuario, string Nombre, decimal Horas);
@@ -83,9 +82,10 @@ public class TareaDetalleViewModel
     public DateOnly? FechaFin { get; set; }
     public decimal Estimado { get; set; }
     public string? Comentarios { get; set; }
+    public decimal TotalRegistrado { get; set; }
     public List<AsignadoItem> Asignados { get; set; } = new();
     public List<RegistroItem> Registros { get; set; } = new();
-    public decimal Registrado => Registros.Sum(r => r.Horas);
+    public Paginacion Paginacion { get; set; } = new();
 
     public bool PuedeEditar { get; set; }      // acceso total a TAREAS
     public bool VerCostos { get; set; }        // el costo por hora solo lo ve quien tiene acceso total
