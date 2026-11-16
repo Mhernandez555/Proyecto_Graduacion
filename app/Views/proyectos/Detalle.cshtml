@@ -54,7 +54,7 @@
 <div class="card">
     <div class="page-head">
         <h2 class="section-title">@(Model.PuedeEditar ? "Tareas del proyecto" : "Mis tareas en el proyecto")</h2>
-        @if (puedeCrearTarea) { <a asp-controller="Tareas" asp-action="Crear" class="btn small">Nueva tarea</a> }
+        @if (puedeCrearTarea) { <a asp-controller="Tareas" asp-action="Crear" asp-route-idProyecto="@Model.IdProyecto" class="btn small">Nueva tarea</a> }
     </div>
     @if (!Model.Tareas.Any())
     {
@@ -83,7 +83,11 @@
                     <td class="num">@Formato.Horas(tarea.Registrado)</td>
                     @if (Ve("TAREAS"))
                     {
-                        <td class="acciones"><a class="btn small" asp-controller="Tareas" asp-action="Detalle" asp-route-id="@tarea.IdTarea">Consultar</a></td>
+                        <td class="acciones acciones-centradas">
+                            <div class="acciones-contenido">
+                                <a class="btn small" asp-controller="Tareas" asp-action="Detalle" asp-route-id="@tarea.IdTarea">Consultar</a>
+                            </div>
+                        </td>
                     }
                 </tr>
             }

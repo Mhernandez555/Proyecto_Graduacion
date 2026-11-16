@@ -1,0 +1,27 @@
+@model SelectorUsuariosViewModel
+<div class="field full selector-usuarios" data-selector-usuarios data-input-name="@Model.Nombre"
+     data-usuarios-url="@Model.UrlUsuarios" data-proyecto-select-id="@Model.IdProyectoSelectId"
+     data-mensaje-sin-opciones="@Model.MensajeSinOpciones">
+    <label for="@Model.Id">@Model.Etiqueta</label>
+    <div class="selector-usuarios-busqueda">
+        <input id="@Model.Id" type="search" autocomplete="off" placeholder="@Model.Placeholder"
+               aria-controls="@(Model.Id + "-opciones")" aria-expanded="false" data-selector-busqueda />
+        <button type="button" class="selector-usuarios-toggle" aria-label="Mostrar usuarios"
+                aria-controls="@(Model.Id + "-opciones")" aria-expanded="false" data-selector-toggle>⌄</button>
+        <div id="@(Model.Id + "-opciones")" class="selector-usuarios-opciones" role="group" aria-label="@Model.Etiqueta"
+             data-selector-opciones hidden>
+            @foreach (var opcion in Model.Opciones)
+            {
+                <label class="selector-usuarios-opcion" data-selector-opcion>
+                    <input type="checkbox" name="@Model.Nombre" value="@opcion.Id"
+                           checked="@Model.Seleccionados.Contains(opcion.Id)" data-selector-checkbox />
+                    <span>@opcion.Texto</span>
+                </label>
+            }
+        </div>
+    </div>
+    <div class="selector-usuarios-seleccionados" aria-live="polite" data-selector-seleccionados></div>
+    <p class="selector-usuarios-mensaje" role="status" data-selector-mensaje>
+        @(Model.Opciones.Count == 0 ? Model.MensajeSinOpciones : "")
+    </p>
+</div>

@@ -18,12 +18,14 @@ public class ProyectosController(ControlexDbContext contexto, BitacoraService bi
     private bool Total => int.TryParse(User.FindFirst("perm:PROYECTOS")?.Value, out var nivel) && nivel >= 2;
     private static DateOnly? ADate(DateTime? fecha) => fecha is null ? (DateOnly?)null : DateOnly.FromDateTime(fecha.Value);
 
-    /// <summary>Con acceso parcial: proyectos que dirige o en los que tiene alguna tarea asignada.</summary>
+    /// <summary>Con acceso parcial: proyectos que dirige, en los que participa o tiene alguna tarea asignada.</summary>
     private IQueryable<Proyecto> Visibles(IQueryable<Proyecto> consulta)
     {
         if (Total) return consulta;
         var idUsuarioActual = IdActual;
         return consulta.Where(proyecto => proyecto.IdResponsable == idUsuarioActual ||
+            contexto.ProyectoUsuarios.Any(asignacion => asignacion.IdProyecto == proyecto.IdProyecto &&
+                asignacion.IdUsuario == idUsuarioActual) ||
             contexto.Tareas.Any(tarea => tarea.IdProyecto == proyecto.IdProyecto &&
                 contexto.TareaUsuarios.Any(asignacion => asignacion.IdTarea == tarea.IdTarea &&
                     asignacion.IdUsuario == idUsuarioActual)));
@@ -205,7 +207,10 @@ public class ProyectosController(ControlexDbContext contexto, BitacoraService bi
                 estado.TipoEstado == "PROYECTO" && estado.Nombre == "Planificado")
             .Select(estado => estado.IdEstado).FirstOrDefaultAsync();
         var modeloProyecto = new ProyectoViewModel
-            { IdEstado = idEstadoPlanificado, FechaInicio = DateTime.Today, IdResponsable = IdActual };
+        {
+            IdEstado = idEstadoPlanificado, FechaInicio = DateTime.Today, IdResponsable = IdActual,
+            IdsUsuariosParticipantes = [IdActual]
+        };
         await PrepararFormulario(modeloProyecto);
         return View("Formulario", modeloProyecto);
     }
@@ -214,6 +219,7 @@ public class ProyectosController(ControlexDbContext contexto, BitacoraService bi
     public async Task<IActionResult> Crear(ProyectoViewModel modeloProyecto)
     {
         await Validar(modeloProyecto, null);
+        await ValidarParticipantes(modeloProyecto, null, []);
         if (!ModelState.IsValid) { await PrepararFormulario(modeloProyecto); return View("Formulario", modeloProyecto); }
 
         var proyecto = new Proyecto
@@ -225,8 +231,13 @@ public class ProyectosController(ControlexDbContext contexto, BitacoraService bi
             FechaFin = ADate(modeloProyecto.FechaFin), PrecioVenta = Math.Round(modeloProyecto.PrecioVenta, 2),
             FechaCreacion = DateTime.Now
         };
+        await using var transaccion = await contexto.Database.BeginTransactionAsync();
         contexto.Proyectos.Add(proyecto);
         await contexto.SaveChangesAsync();
+        contexto.ProyectoUsuarios.AddRange(modeloProyecto.IdsUsuariosParticipantes.Distinct().Select(idUsuario =>
+            new ProyectoUsuario { IdProyecto = proyecto.IdProyecto, IdUsuario = idUsuario, FechaAsignacion = DateTime.Now }));
+        await contexto.SaveChangesAsync();
+        await transaccion.CommitAsync();
         await bitacora.MovimientoAsync(IdActual, "PROYECTOS", "INSERCIÓN",
             $"Proyecto creado: {proyecto.Codigo} {proyecto.Nombre}");
 
@@ -245,7 +256,10 @@ public class ProyectosController(ControlexDbContext contexto, BitacoraService bi
             Descripcion = proyecto.Descripcion, IdCliente = proyecto.IdCliente,
             IdCategoria = proyecto.IdCategoria, IdEstado = proyecto.IdEstado, IdResponsable = proyecto.IdResponsable,
             FechaInicio = proyecto.FechaInicio.ToDateTime(TimeOnly.MinValue),
-            FechaFin = proyecto.FechaFin?.ToDateTime(TimeOnly.MinValue), PrecioVenta = proyecto.PrecioVenta
+            FechaFin = proyecto.FechaFin?.ToDateTime(TimeOnly.MinValue), PrecioVenta = proyecto.PrecioVenta,
+            IdsUsuariosParticipantes = await contexto.ProyectoUsuarios.AsNoTracking()
+                .Where(asignacion => asignacion.IdProyecto == id)
+                .Select(asignacion => asignacion.IdUsuario).ToListAsync()
         };
         await PrepararFormulario(modeloProyecto);
         return View("Formulario", modeloProyecto);
@@ -258,8 +272,12 @@ public class ProyectosController(ControlexDbContext contexto, BitacoraService bi
         if (proyecto is null) return NotFound();
         modeloProyecto.IdProyecto = id;
         modeloProyecto.Codigo = proyecto.Codigo;
+        var participantesActuales = await contexto.ProyectoUsuarios
+            .Where(asignacion => asignacion.IdProyecto == id).ToListAsync();
 
         await Validar(modeloProyecto, proyecto);
+        await ValidarParticipantes(modeloProyecto, id,
+            participantesActuales.Select(asignacion => asignacion.IdUsuario).ToList());
         if (!ModelState.IsValid) { await PrepararFormulario(modeloProyecto); return View("Formulario", modeloProyecto); }
 
         proyecto.Nombre = modeloProyecto.Nombre.Trim(); proyecto.Descripcion = modeloProyecto.Descripcion?.Trim();
@@ -268,6 +286,13 @@ public class ProyectosController(ControlexDbContext contexto, BitacoraService bi
         proyecto.FechaInicio = DateOnly.FromDateTime(modeloProyecto.FechaInicio!.Value);
         proyecto.FechaFin = ADate(modeloProyecto.FechaFin);
         proyecto.PrecioVenta = Math.Round(modeloProyecto.PrecioVenta, 2);
+        var idsParticipantesSeleccionados = modeloProyecto.IdsUsuariosParticipantes.Distinct().ToList();
+        contexto.ProyectoUsuarios.RemoveRange(participantesActuales.Where(asignacion =>
+            !idsParticipantesSeleccionados.Contains(asignacion.IdUsuario)));
+        contexto.ProyectoUsuarios.AddRange(idsParticipantesSeleccionados
+            .Except(participantesActuales.Select(asignacion => asignacion.IdUsuario))
+            .Select(idUsuario => new ProyectoUsuario
+                { IdProyecto = id, IdUsuario = idUsuario, FechaAsignacion = DateTime.Now }));
         await contexto.SaveChangesAsync();
         await bitacora.MovimientoAsync(IdActual, "PROYECTOS", "MODIFICACIÓN",
             $"Proyecto modificado: {proyecto.Codigo} {proyecto.Nombre}");
@@ -327,11 +352,44 @@ public class ProyectosController(ControlexDbContext contexto, BitacoraService bi
         }
     }
 
+    private async Task ValidarParticipantes(ProyectoViewModel modeloProyecto, int? idProyecto,
+        List<int> idsParticipantesActuales)
+    {
+        var idsSeleccionados = modeloProyecto.IdsUsuariosParticipantes.Distinct().ToList();
+        if (idsSeleccionados.Count == 0)
+            ModelState.AddModelError(nameof(modeloProyecto.IdsUsuariosParticipantes),
+                "Seleccione al menos un participante del proyecto.");
+        if (await contexto.Usuarios.CountAsync(usuario => idsSeleccionados.Contains(usuario.IdUsuario)) != idsSeleccionados.Count)
+            ModelState.AddModelError(nameof(modeloProyecto.IdsUsuariosParticipantes),
+                "La selección contiene usuarios que no existen.");
+
+        var idsNuevos = idsSeleccionados.Except(idsParticipantesActuales).ToList();
+        if (idsNuevos.Count > 0 &&
+            await contexto.Usuarios.CountAsync(usuario =>
+                idsNuevos.Contains(usuario.IdUsuario) && usuario.Estado) != idsNuevos.Count)
+            ModelState.AddModelError(nameof(modeloProyecto.IdsUsuariosParticipantes),
+                "Solo se pueden agregar usuarios activos como participantes.");
+
+        if (idProyecto is not int id || idsParticipantesActuales.Count == 0) return;
+        var idsPorQuitar = idsParticipantesActuales.Except(idsSeleccionados).ToList();
+        if (idsPorQuitar.Count == 0) return;
+        var idsEnTareas = await contexto.TareaUsuarios
+            .Where(asignacion => idsPorQuitar.Contains(asignacion.IdUsuario) &&
+                contexto.Tareas.Any(tarea => tarea.IdTarea == asignacion.IdTarea && tarea.IdProyecto == id))
+            .Select(asignacion => asignacion.IdUsuario).Distinct().ToListAsync();
+        if (idsEnTareas.Count == 0) return;
+        var nombres = await contexto.Usuarios.Where(usuario => idsEnTareas.Contains(usuario.IdUsuario))
+            .Select(usuario => usuario.Nombre + " " + usuario.Apellido1).ToListAsync();
+        ModelState.AddModelError(nameof(modeloProyecto.IdsUsuariosParticipantes),
+            $"No se puede quitar a {string.Join(", ", nombres)}: primero debe desasignarlo de las tareas del proyecto.");
+    }
+
     private async Task PrepararFormulario(ProyectoViewModel modeloProyecto)
     {
         var idClienteSeleccionado = modeloProyecto.IdCliente;
         var idCategoriaSeleccionada = modeloProyecto.IdCategoria;
         var idResponsableSeleccionado = modeloProyecto.IdResponsable;
+        var idsParticipantesSeleccionados = modeloProyecto.IdsUsuariosParticipantes.Distinct().ToList();
 
         ViewBag.Clientes = new SelectList(
             await contexto.Clientes.AsNoTracking()
@@ -353,5 +411,11 @@ public class ProyectosController(ControlexDbContext contexto, BitacoraService bi
                 .OrderBy(usuario => usuario.Nombre)
                 .Select(usuario => new { usuario.IdUsuario, Texto = usuario.Nombre + " " + usuario.Apellido1 }).ToListAsync(),
             "IdUsuario", "Texto", modeloProyecto.IdResponsable);
+        ViewBag.Usuarios = await contexto.Usuarios.AsNoTracking()
+            .Where(usuario => usuario.Estado || idsParticipantesSeleccionados.Contains(usuario.IdUsuario))
+            .OrderBy(usuario => usuario.Nombre).ThenBy(usuario => usuario.Apellido1)
+            .Select(usuario => new OpcionUsuario(usuario.IdUsuario,
+                usuario.Nombre + " " + usuario.Apellido1 + (usuario.Estado ? "" : " (inactivo)")))
+            .ToListAsync();
     }
 }

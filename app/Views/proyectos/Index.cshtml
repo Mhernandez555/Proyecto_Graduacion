@@ -65,9 +65,11 @@ else
                         <td class="num">@Formato.Dinero(proyecto.Costo ?? 0m)</td>
                         <td class="num @((proyecto.Rentabilidad ?? 0m) < 0 ? "neg" : "")">@Formato.Dinero(proyecto.Rentabilidad ?? 0m)</td>
                     }
-                    <td class="acciones">
-                        <a class="btn small" asp-action="Detalle" asp-route-id="@proyecto.IdProyecto">Consultar</a>
-                        @if (Model.Total) { <a class="btn small" asp-action="Editar" asp-route-id="@proyecto.IdProyecto">Editar</a> }
+                    <td class="acciones acciones-centradas">
+                        <div class="acciones-contenido">
+                            <a class="btn small" asp-action="Detalle" asp-route-id="@proyecto.IdProyecto">Consultar</a>
+                            @if (Model.Total) { <a class="btn small" asp-action="Editar" asp-route-id="@proyecto.IdProyecto">Editar</a> }
+                        </div>
                     </td>
                 </tr>
             }

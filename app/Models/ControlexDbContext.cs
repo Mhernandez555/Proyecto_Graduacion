@@ -18,6 +18,7 @@ public class ControlexDbContext(DbContextOptions<ControlexDbContext> opciones) :
     public DbSet<EstadoCatalogo> Estados => Set<EstadoCatalogo>();
     public DbSet<Categoria> Categorias => Set<Categoria>();
     public DbSet<Proyecto> Proyectos => Set<Proyecto>();
+    public DbSet<ProyectoUsuario> ProyectoUsuarios => Set<ProyectoUsuario>();
     public DbSet<Tarea> Tareas => Set<Tarea>();
     public DbSet<TareaUsuario> TareaUsuarios => Set<TareaUsuario>();
     public DbSet<RegistroTiempo> RegistrosTiempo => Set<RegistroTiempo>();
@@ -34,6 +35,7 @@ public class ControlexDbContext(DbContextOptions<ControlexDbContext> opciones) :
         constructorModelo.Entity<RegistroTiempo>().Property(registro => registro.CostoHora).HasPrecision(12, 2);
 
         constructorModelo.Entity<TareaUsuario>().HasKey(asignacion => new { asignacion.IdTarea, asignacion.IdUsuario });
+        constructorModelo.Entity<ProyectoUsuario>().HasKey(asignacion => new { asignacion.IdProyecto, asignacion.IdUsuario });
 
         constructorModelo.Entity<VistaRentabilidad>().ToView("vw_rentabilidad_proyectos");
         constructorModelo.Entity<VistaRentabilidad>().Property(resumen => resumen.PrecioVenta).HasPrecision(14, 2);

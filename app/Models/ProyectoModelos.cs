@@ -31,6 +31,9 @@ public class ProyectoViewModel
     [Display(Name = "Responsable")]
     public int IdResponsable { get; set; }
 
+    [Display(Name = "Participantes del proyecto")]
+    public List<int> IdsUsuariosParticipantes { get; set; } = new();
+
     [Required(ErrorMessage = "Ingrese la fecha de inicio.")]
     [Display(Name = "Fecha de inicio")]
     public DateTime? FechaInicio { get; set; }

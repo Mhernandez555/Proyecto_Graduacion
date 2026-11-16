@@ -67,9 +67,11 @@ else
                     </td>
                     <td class="num">@Formato.Horas(tarea.Estimado)</td>
                     <td class="num">@Formato.Horas(tarea.Registrado)</td>
-                    <td class="acciones">
-                        <a class="btn small" asp-action="Detalle" asp-route-id="@tarea.IdTarea">Consultar</a>
-                        @if (Model.Total) { <a class="btn small" asp-action="Editar" asp-route-id="@tarea.IdTarea">Editar</a> }
+                    <td class="acciones acciones-centradas">
+                        <div class="acciones-contenido">
+                            <a class="btn small" asp-action="Detalle" asp-route-id="@tarea.IdTarea">Consultar</a>
+                            @if (Model.Total) { <a class="btn small" asp-action="Editar" asp-route-id="@tarea.IdTarea">Editar</a> }
+                        </div>
                     </td>
                 </tr>
             }

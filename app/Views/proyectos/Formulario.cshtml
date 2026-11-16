@@ -2,6 +2,16 @@
 @{
     var nuevo = Model.IdProyecto == 0;
     ViewData["Title"] = nuevo ? "Nuevo proyecto" : $"Editar proyecto {Model.Codigo}";
+    var selectorUsuarios = new SelectorUsuariosViewModel
+    {
+        Id = "IdsUsuariosParticipantes",
+        Nombre = nameof(Model.IdsUsuariosParticipantes),
+        Etiqueta = "Participantes del proyecto",
+        Placeholder = "Busque usuarios activos por nombre...",
+        MensajeSinOpciones = "No hay usuarios activos disponibles.",
+        Opciones = (List<OpcionUsuario>)ViewBag.Usuarios,
+        Seleccionados = Model.IdsUsuariosParticipantes
+    };
 }
 <div class="card">
     <form asp-action="@(nuevo ? "Crear" : "Editar")" asp-route-id="@(nuevo ? null : Model.IdProyecto)" method="post">
@@ -24,6 +34,8 @@
             <div class="field"><label asp-for="IdResponsable"></label>
                 <select asp-for="IdResponsable" asp-items="(SelectList)ViewBag.Responsables"><option value="0">Seleccione el responsable...</option></select>
                 <span asp-validation-for="IdResponsable" class="field-error"></span></div>
+            <partial name="_SelectorUsuarios" model="selectorUsuarios" />
+            <span asp-validation-for="IdsUsuariosParticipantes" class="field-error"></span>
             <div class="field"><label for="FechaInicio">Fecha de inicio</label>
                 <input type="date" id="FechaInicio" name="FechaInicio" value="@Model.FechaInicio?.ToString("yyyy-MM-dd")" />
                 <span asp-validation-for="FechaInicio" class="field-error"></span></div>

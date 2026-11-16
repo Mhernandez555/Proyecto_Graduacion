@@ -3,6 +3,20 @@
     var nueva = Model.IdTarea == 0;
     ViewData["Title"] = nueva ? "Nueva tarea" : $"Editar tarea {Model.Codigo}";
     var usuarios = (List<OpcionUsuario>)ViewBag.Usuarios;
+    var selectorUsuarios = new SelectorUsuariosViewModel
+    {
+        Id = "IdsUsuarios",
+        Nombre = nameof(Model.IdsUsuarios),
+        Etiqueta = "Usuarios asignados",
+        Placeholder = "Busque participantes del proyecto...",
+        MensajeSinOpciones = Model.IdProyecto == 0
+            ? "Seleccione un proyecto para consultar sus participantes."
+            : "No hay participantes asignados a este proyecto.",
+        UrlUsuarios = Url.Action("UsuariosDelProyecto", "Tareas"),
+        IdProyectoSelectId = "IdProyecto",
+        Opciones = usuarios,
+        Seleccionados = Model.IdsUsuarios
+    };
 }
 <div class="card">
     <form asp-action="@(nueva ? "Crear" : "Editar")" asp-route-id="@(nueva ? null : Model.IdTarea)" method="post">
@@ -33,16 +47,8 @@
                 <span asp-validation-for="TiempoEstimado" class="field-error"></span></div>
             <div class="field full"><label asp-for="Descripcion"></label><textarea asp-for="Descripcion" rows="3"></textarea><span asp-validation-for="Descripcion" class="field-error"></span></div>
             <div class="field full"><label asp-for="Comentarios"></label><textarea asp-for="Comentarios" rows="3"></textarea><span asp-validation-for="Comentarios" class="field-error"></span></div>
-            <div class="field full">
-                <label>Usuarios asignados</label>
-                <div class="checks">
-                    @foreach (var opcionUsuario in usuarios)
-                    {
-                        <label class="check"><input type="checkbox" name="IdsUsuarios" value="@opcionUsuario.Id" checked="@Model.IdsUsuarios.Contains(opcionUsuario.Id)" /> @opcionUsuario.Texto</label>
-                    }
-                </div>
-                <span asp-validation-for="IdsUsuarios" class="field-error"></span>
-            </div>
+            <partial name="_SelectorUsuarios" model="selectorUsuarios" />
+            <span asp-validation-for="IdsUsuarios" class="field-error"></span>
         </div>
         <div class="form-actions">
             <button type="submit" class="btn primary">@(nueva ? "Guardar" : "Actualizar")</button>

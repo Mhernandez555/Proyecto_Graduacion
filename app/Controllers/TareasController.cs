@@ -363,6 +363,26 @@ public class TareasController(ControlexDbContext contexto, BitacoraService bitac
         return RedirectToAction(nameof(Detalle), new { id });
     }
 
+    [RequiereModulo("TAREAS", 2), HttpGet]
+    public async Task<IActionResult> UsuariosDelProyecto(int idProyecto)
+    {
+        if (idProyecto <= 0) return BadRequest();
+        if (!await contexto.Proyectos.AnyAsync(proyecto => proyecto.IdProyecto == idProyecto))
+            return NotFound();
+
+        var usuarios = await contexto.ProyectoUsuarios.AsNoTracking()
+            .Where(asignacion => asignacion.IdProyecto == idProyecto)
+            .OrderBy(asignacion => asignacion.Usuario.Nombre)
+            .ThenBy(asignacion => asignacion.Usuario.Apellido1)
+            .Select(asignacion => new
+            {
+                id = asignacion.IdUsuario,
+                texto = asignacion.Usuario.Nombre + " " + asignacion.Usuario.Apellido1 +
+                        (asignacion.Usuario.Estado ? "" : " (inactivo)")
+            }).ToListAsync();
+        return Json(usuarios);
+    }
+
     // ---------- apoyo ----------
     private async Task Validar(TareaViewModel modeloTarea, int? proyectoActual, List<int> idsYaAsignados)
     {
@@ -373,13 +393,24 @@ public class TareasController(ControlexDbContext contexto, BitacoraService bitac
 
         if (modeloTarea.IdProyecto > 0)
         {
-            var estado = await contexto.Proyectos.Where(proyecto => proyecto.IdProyecto == modeloTarea.IdProyecto)
-                .Select(proyecto => proyecto.EstadoActual.Nombre).FirstOrDefaultAsync();
-            if (estado is null)
+            var proyecto = await contexto.Proyectos.AsNoTracking()
+                .Where(registro => registro.IdProyecto == modeloTarea.IdProyecto)
+                .Select(registro => new { Estado = registro.EstadoActual.Nombre }).FirstOrDefaultAsync();
+            if (proyecto is null)
                 ModelState.AddModelError(nameof(modeloTarea.IdProyecto), "Seleccione un proyecto válido.");
-            else if (modeloTarea.IdProyecto != proyectoActual && estado is "Finalizado" or "Cancelado")
+            else if (modeloTarea.IdProyecto != proyectoActual && proyecto.Estado is "Finalizado" or "Cancelado")
                 ModelState.AddModelError(nameof(modeloTarea.IdProyecto),
                     "No se pueden agregar tareas a un proyecto finalizado o cancelado.");
+
+            if (proyecto is not null)
+            {
+                var idsParticipantes = await contexto.ProyectoUsuarios.AsNoTracking()
+                    .Where(asignacion => asignacion.IdProyecto == modeloTarea.IdProyecto)
+                    .Select(asignacion => asignacion.IdUsuario).ToListAsync();
+                if (modeloTarea.IdsUsuarios.Except(idsParticipantes).Any())
+                    ModelState.AddModelError(nameof(modeloTarea.IdsUsuarios),
+                        "Solo puede asignar usuarios que sean participantes del proyecto seleccionado.");
+            }
         }
         if (modeloTarea.IdCategoria > 0 &&
             !await contexto.Categorias.AnyAsync(categoria => categoria.IdCategoria == modeloTarea.IdCategoria))
@@ -426,11 +457,13 @@ public class TareasController(ControlexDbContext contexto, BitacoraService bitac
             await contexto.Estados.AsNoTracking().Where(estado => estado.TipoEstado == "TAREA")
                 .OrderBy(estado => estado.IdEstado).ToListAsync(),
             "IdEstado", "Nombre", modeloTarea.IdEstado);
-        ViewBag.Usuarios = await contexto.Usuarios.AsNoTracking()
-            .Where(usuario => usuario.Estado || idsUsuariosAsignados.Contains(usuario.IdUsuario))
-            .OrderBy(usuario => usuario.Nombre)
-            .Select(usuario => new OpcionUsuario(usuario.IdUsuario,
-                usuario.Nombre + " " + usuario.Apellido1 + (usuario.Estado ? "" : " (inactivo)")))
+        ViewBag.Usuarios = await contexto.ProyectoUsuarios.AsNoTracking()
+            .Where(asignacion => asignacion.IdProyecto == idProyectoSeleccionado)
+            .OrderBy(asignacion => asignacion.Usuario.Nombre)
+            .ThenBy(asignacion => asignacion.Usuario.Apellido1)
+            .Select(asignacion => new OpcionUsuario(asignacion.IdUsuario,
+                asignacion.Usuario.Nombre + " " + asignacion.Usuario.Apellido1 +
+                (asignacion.Usuario.Estado ? "" : " (inactivo)")))
             .ToListAsync();
     }
 

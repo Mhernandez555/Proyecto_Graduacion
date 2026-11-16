@@ -45,8 +45,6 @@ public class TareaViewModel
     public List<int> IdsUsuarios { get; set; } = new();
 }
 
-public record OpcionUsuario(int Id, string Texto);
-
 public record TareaListado(int IdTarea, string Codigo, string Nombre, string Proyecto, string Categoria, string Asignados,
     string Estado, DateOnly? FechaInicio, DateOnly? FechaFin, decimal Estimado, decimal Registrado)
 {

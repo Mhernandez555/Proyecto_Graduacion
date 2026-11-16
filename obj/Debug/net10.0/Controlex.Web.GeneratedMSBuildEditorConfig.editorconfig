@@ -115,6 +115,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXFNoYXJlZFxfUGFnaW5hY2lvbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/CONTROLEX/app/Views/Shared/_SelectorUsuarios.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXFNoYXJlZFxfU2VsZWN0b3JVc3Vhcmlvcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/CONTROLEX/app/Views/tareas/Detalle.cshtml]
 build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXHRhcmVhc1xEZXRhbGxlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 

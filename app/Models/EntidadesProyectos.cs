@@ -42,6 +42,17 @@ public class Proyecto
     [ForeignKey(nameof(IdResponsable))] public Usuario Responsable { get; set; } = null!;
 }
 
+/// <summary>Participante de un proyecto (clave compuesta, se configura en el DbContext).</summary>
+[Table("proyecto_usuarios")]
+public class ProyectoUsuario
+{
+    [Column("id_proyecto")] public int IdProyecto { get; set; }
+    [Column("id_usuario")] public int IdUsuario { get; set; }
+    [Column("fecha_asignacion")] public DateTime FechaAsignacion { get; set; }
+    [ForeignKey(nameof(IdProyecto))] public Proyecto Proyecto { get; set; } = null!;
+    [ForeignKey(nameof(IdUsuario))] public Usuario Usuario { get; set; } = null!;
+}
+
 /// <summary>Vista vw_rentabilidad_proyectos: costo acumulado y rentabilidad de cada proyecto (fuente de RF-005).</summary>
 [Keyless]
 public class VistaRentabilidad

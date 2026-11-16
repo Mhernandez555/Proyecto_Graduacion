@@ -14,7 +14,8 @@ En SSMS, contra el servidor de WallRed y en este orden:
 2. `database/sql/003_ultima_actividad_sesion.sql`.
 3. `database/sql/004_motivo_salida_sesion.sql`.
 4. `database/sql/005_direccion_ip_ipv6.sql`.
-5. **No** ejecutar `002_datos_prueba_reportes.sql` (son datos ficticios).
+5. `database/sql/006_usuarios_proyecto.sql` (crea los participantes de proyectos y conserva responsables y asignaciones de tareas existentes).
+6. **No** ejecutar `002_datos_prueba_reportes.sql` (son datos ficticios).
 6. Crear el login que usará la aplicación (cambie la clave):
    ```sql
    CREATE LOGIN controlex_app WITH PASSWORD = 'UnaClaveLargaYUnica1!', CHECK_POLICY = OFF;
