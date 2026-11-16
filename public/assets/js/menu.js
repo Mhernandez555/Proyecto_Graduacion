@@ -13,6 +13,13 @@
   boton.addEventListener('click', function () { abrir(!cuerpo.classList.contains('menu-abierto')); });
   if (fondo) fondo.addEventListener('click', function () { abrir(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') abrir(false); });
+  document.querySelectorAll('.nav-group').forEach(function (grupo) {
+    grupo.addEventListener('click', function () {
+      var desplegado = grupo.getAttribute('aria-expanded') === 'true';
+      grupo.setAttribute('aria-expanded', desplegado ? 'false' : 'true');
+      document.getElementById(grupo.getAttribute('aria-controls')).hidden = desplegado;
+    });
+  });
   document.querySelectorAll('.sidebar a').forEach(function (a) {
     a.addEventListener('click', function () { abrir(false); });
   });

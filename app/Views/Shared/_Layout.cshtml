@@ -30,43 +30,67 @@
         <a class="nav-item" asp-controller="Dashboard" asp-action="Index">Inicio</a>
         @if (Nivel("PROYECTOS") > 0)
         {
-            <div class="nav-group">Proyectos</div>
-            @if (Nivel("PROYECTOS") == 2) { <a class="nav-sub" asp-controller="Proyectos" asp-action="Crear">Crear proyecto</a> }
-            <a class="nav-sub" asp-controller="Proyectos" asp-action="Index">Ver proyectos</a>
+            <button type="button" class="nav-group" aria-expanded="false" aria-controls="menu-proyectos">
+                Proyectos <span class="nav-chevron" aria-hidden="true"></span>
+            </button>
+            <div id="menu-proyectos" class="nav-submenu" hidden>
+                @if (Nivel("PROYECTOS") == 2) { <a class="nav-sub" asp-controller="Proyectos" asp-action="Crear">Crear proyecto</a> }
+                <a class="nav-sub" asp-controller="Proyectos" asp-action="Index">Ver proyectos</a>
+            </div>
         }
         @if (Nivel("TAREAS") > 0)
         {
-            <div class="nav-group">Tareas</div>
-            @if (Nivel("TAREAS") == 2) { <a class="nav-sub" asp-controller="Tareas" asp-action="Crear">Crear tarea</a> }
-            <a class="nav-sub" asp-controller="Tareas" asp-action="Index">Ver tareas</a>
+            <button type="button" class="nav-group" aria-expanded="false" aria-controls="menu-tareas">
+                Tareas <span class="nav-chevron" aria-hidden="true"></span>
+            </button>
+            <div id="menu-tareas" class="nav-submenu" hidden>
+                @if (Nivel("TAREAS") == 2) { <a class="nav-sub" asp-controller="Tareas" asp-action="Crear">Crear tarea</a> }
+                <a class="nav-sub" asp-controller="Tareas" asp-action="Index">Ver tareas</a>
+            </div>
         }
         @if (Nivel("REP_RENTABILIDAD") > 0 || Nivel("REP_TAREAS") > 0)
         {
-            <div class="nav-group">Reportes</div>
-            @if (Nivel("REP_RENTABILIDAD") > 0) { <a class="nav-sub" asp-controller="Reportes" asp-action="Rentabilidad">Rentabilidad de proyectos</a> }
-            @if (Nivel("REP_TAREAS") > 0) { <a class="nav-sub" asp-controller="Reportes" asp-action="Tareas">Eficiencia y pendientes</a> }
+            <button type="button" class="nav-group" aria-expanded="false" aria-controls="menu-reportes">
+                Reportes <span class="nav-chevron" aria-hidden="true"></span>
+            </button>
+            <div id="menu-reportes" class="nav-submenu" hidden>
+                @if (Nivel("REP_RENTABILIDAD") > 0) { <a class="nav-sub" asp-controller="Reportes" asp-action="Rentabilidad">Rentabilidad de proyectos</a> }
+                @if (Nivel("REP_TAREAS") > 0) { <a class="nav-sub" asp-controller="Reportes" asp-action="Tareas">Eficiencia y pendientes</a> }
+            </div>
         }
-        <div class="nav-group">Seguridad</div>
-        @if (Nivel("ROLES_PERMISOS") > 0) { <a class="nav-sub" asp-controller="Roles" asp-action="Index">Roles y permisos</a> }
-        <a class="nav-sub" asp-controller="Seguridad" asp-action="CambiarContrasena">Cambiar contraseña</a>
+        <button type="button" class="nav-group" aria-expanded="false" aria-controls="menu-seguridad">
+            Seguridad <span class="nav-chevron" aria-hidden="true"></span>
+        </button>
+        <div id="menu-seguridad" class="nav-submenu" hidden>
+            @if (Nivel("ROLES_PERMISOS") > 0) { <a class="nav-sub" asp-controller="Roles" asp-action="Index">Roles y permisos</a> }
+            <a class="nav-sub" asp-controller="Seguridad" asp-action="CambiarContrasena">Cambiar contraseña</a>
+        </div>
         @if (Nivel("BITACORAS") > 0)
         {
-            <div class="nav-group">Bitácoras</div>
-            <a class="nav-sub" asp-controller="Bitacoras" asp-action="Ingresos">Ingresos de usuario</a>
-            <a class="nav-sub" asp-controller="Bitacoras" asp-action="Movimientos">Movimientos de usuario</a>
+            <button type="button" class="nav-group" aria-expanded="false" aria-controls="menu-bitacoras">
+                Bitácoras <span class="nav-chevron" aria-hidden="true"></span>
+            </button>
+            <div id="menu-bitacoras" class="nav-submenu" hidden>
+                <a class="nav-sub" asp-controller="Bitacoras" asp-action="Ingresos">Ingresos de usuario</a>
+                <a class="nav-sub" asp-controller="Bitacoras" asp-action="Movimientos">Movimientos de usuario</a>
+            </div>
         }
         @if (Nivel("USUARIOS") > 0 || Nivel("CLIENTES") > 0)
         {
-            <div class="nav-group">Catálogos</div>
-            @if (Nivel("USUARIOS") > 0) { <a class="nav-sub" asp-controller="Usuarios" asp-action="Index">Usuarios</a> }
-            @if (Nivel("CLIENTES") > 0) { <a class="nav-sub" asp-controller="Clientes" asp-action="Index">Clientes</a> }
+            <button type="button" class="nav-group" aria-expanded="false" aria-controls="menu-catalogos">
+                Catálogos <span class="nav-chevron" aria-hidden="true"></span>
+            </button>
+            <div id="menu-catalogos" class="nav-submenu" hidden>
+                @if (Nivel("USUARIOS") > 0) { <a class="nav-sub" asp-controller="Usuarios" asp-action="Index">Usuarios</a> }
+                @if (Nivel("CLIENTES") > 0) { <a class="nav-sub" asp-controller="Clientes" asp-action="Index">Clientes</a> }
+            </div>
         }
         <a class="nav-item" asp-controller="Informacion" asp-action="AcercaDe">Acerca de</a>
         <a class="nav-item" asp-controller="Informacion" asp-action="Ayuda">Ayuda</a>
+        <form asp-controller="Auth" asp-action="Logout" method="post" class="logout">
+            <button type="submit" class="nav-item">Cerrar sesión</button>
+        </form>
     </nav>
-    <form asp-controller="Auth" asp-action="Logout" method="post" class="logout">
-        <button type="submit" class="nav-item">Cerrar sesión</button>
-    </form>
 </aside>
 <div class="main">
     <header class="topbar">

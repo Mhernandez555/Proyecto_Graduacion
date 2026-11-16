@@ -6,14 +6,16 @@ body{margin:0;font-family:Poppins,"Segoe UI",Arial,sans-serif;color:var(--text);
 .brand.dark{color:var(--navy);padding:0 0 18px}
 .brand-mark{width:34px;height:34px;border-radius:9px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center}
 .app{display:flex;min-height:100vh}
-.sidebar{width:240px;flex-shrink:0;background:var(--navy);padding:24px 14px;display:flex;flex-direction:column}
-.sidebar nav{flex:1}
+.sidebar{position:fixed;top:0;bottom:0;left:0;z-index:50;width:240px;overflow-y:auto;background:var(--navy);padding:24px 14px;display:flex;flex-direction:column}
 .nav-item,.nav-sub{display:block;color:#E2E8F0;text-decoration:none;border-radius:8px;font-size:13px;background:none;border:0;width:100%;text-align:left;font-family:inherit;cursor:pointer}
 .nav-item{padding:9px 12px;font-weight:500}.nav-sub{padding:6px 12px 6px 26px;font-size:12px;color:#CBD5E1}
 .nav-item:hover,.nav-sub:hover{background:rgba(255,255,255,.08)}
-.nav-group{padding:12px 12px 4px;color:#94A3B8;font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+.nav-group{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 12px 4px;color:#94A3B8;font-size:11px;text-transform:uppercase;letter-spacing:.8px;background:none;border:0;font-family:inherit;text-align:left;cursor:pointer}
+.nav-chevron{width:7px;height:7px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg);transition:transform .2s}
+.nav-group[aria-expanded="true"] .nav-chevron{transform:rotate(225deg)}
+.nav-submenu .nav-sub{display:block}
 .logout{margin:0}
-.main{flex:1;min-width:0}
+.main{flex:1;min-width:0;margin-left:240px}
 .topbar{background:#fff;border-bottom:1px solid var(--line);padding:16px 32px;display:flex;justify-content:space-between;align-items:center}
 .topbar h1{margin:0;font-size:22px;color:var(--navy)}
 .user{text-align:right;display:flex;flex-direction:column}.user span{font-size:12px;color:var(--muted)}
@@ -30,3 +32,6 @@ input:focus{outline:2px solid var(--blue);outline-offset:1px}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
 .link{color:var(--blue-d);font-weight:500}
 .alert{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:13px}
+.clientes-busqueda{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.clientes-busqueda label{margin:0}
+.clientes-busqueda input{flex:1 1 260px;min-width:180px}

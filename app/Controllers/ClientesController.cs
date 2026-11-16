@@ -3,6 +3,7 @@ using Controlex.Web.Models;
 using Controlex.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 namespace Controlex.Web.Controllers;
 
@@ -11,14 +12,30 @@ public class ClientesController(ControlexDbContext contexto, BitacoraService bit
 {
     private int IdActual => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    public async Task<IActionResult> Index(int pagina = 1)
+    public async Task<IActionResult> Index(string? busqueda, int pagina = 1)
     {
-        var total = await contexto.Clientes.CountAsync();
-        var paginacion = Paginacion.Crear("Clientes", nameof(Index), pagina, total);
-        var clientes = await contexto.Clientes.AsNoTracking().Include(cliente => cliente.TipoCliente)
+        var termino = busqueda?.Trim();
+        var consulta = contexto.Clientes.AsNoTracking().AsQueryable();
+        if (!string.IsNullOrWhiteSpace(termino))
+        {
+            consulta = consulta.Where(cliente =>
+                cliente.NombreCliente.Contains(termino) ||
+                cliente.Identificacion.Contains(termino) ||
+                (cliente.Contacto != null && cliente.Contacto.Contains(termino)) ||
+                cliente.Telefono1.Contains(termino) ||
+                (cliente.Telefono2 != null && cliente.Telefono2.Contains(termino)) ||
+                (cliente.Correo != null && cliente.Correo.Contains(termino)) ||
+                (cliente.Direccion != null && cliente.Direccion.Contains(termino)) ||
+                cliente.TipoCliente.Nombre.Contains(termino));
+        }
+
+        var filtros = new RouteValueDictionary();
+        if (!string.IsNullOrWhiteSpace(termino)) filtros["busqueda"] = termino;
+        var paginacion = Paginacion.Crear("Clientes", nameof(Index), pagina, await consulta.CountAsync(), filtros);
+        var clientes = await consulta.Include(cliente => cliente.TipoCliente)
             .OrderBy(cliente => cliente.NombreCliente).ThenBy(cliente => cliente.IdCliente)
             .Skip((paginacion.Pagina - 1) * paginacion.Tam).Take(paginacion.Tam).ToListAsync();
-        return View(new ClientesIndexViewModel { Filas = clientes, Paginacion = paginacion });
+        return View(new ClientesIndexViewModel { Filas = clientes, Paginacion = paginacion, Busqueda = termino });
     }
 
     [HttpGet]

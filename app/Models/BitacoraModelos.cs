@@ -81,6 +81,7 @@ public class ClientesIndexViewModel
 {
     public List<Cliente> Filas { get; set; } = new();
     public Paginacion Paginacion { get; set; } = new();
+    public string? Busqueda { get; set; }
 }
 
 public class UsuariosIndexViewModel

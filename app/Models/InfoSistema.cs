@@ -8,6 +8,6 @@ public static class InfoSistema
     public const string Version = "1.0.0";
     public static readonly DateOnly FechaVersion = new(2026, 11, 10);
     public const string Propietario = "WallRed, Sociedad de Responsabilidad Limitada (cédula jurídica 3-102-946775)";
-    public const string Desarrollador = "Dixon Jareth Martínez Jarquín y Marcos Hernández López";
+    public const string Desarrollador = "Marcos Hernández López y Dixon Jareth Martínez Jarquín";
     public const string Lenguaje = "C# 14 sobre .NET 10, ASP.NET Core MVC";
 }

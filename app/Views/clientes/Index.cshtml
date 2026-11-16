@@ -5,6 +5,16 @@
     <a class="btn primary" asp-action="Crear">Nuevo cliente</a>
 </div>
 <div class="card"><div class="table-wrap">
+    <form method="get" asp-action="Index" class="clientes-busqueda" role="search">
+        <label for="busqueda-clientes">Buscar clientes</label>
+        <input id="busqueda-clientes" type="search" name="busqueda" value="@Model.Busqueda"
+               placeholder="Nombre, identificación, contacto, teléfono o correo" />
+        <button type="submit" class="btn primary">Buscar</button>
+        @if (!string.IsNullOrWhiteSpace(Model.Busqueda))
+        {
+            <a class="btn" asp-action="Index">Limpiar</a>
+        }
+    </form>
     <table class="grid">
         <thead><tr><th>Identificación</th><th>Cliente</th><th>Tipo</th><th>Contacto</th><th>Teléfono</th><th>Correo</th><th>Estado</th><th>Acciones</th></tr></thead>
         <tbody>
@@ -28,7 +38,10 @@
         }
         </tbody>
     </table>
-    @if (!Model.Filas.Any()) { <p class="muted">No hay clientes registrados.</p> }
+    @if (!Model.Filas.Any())
+    {
+        <p class="muted">@(string.IsNullOrWhiteSpace(Model.Busqueda) ? "No hay clientes registrados." : "No se encontraron clientes con esos datos.")</p>
+    }
 </div>
 <partial name="_Paginacion" model="Model.Paginacion" />
 </div>
