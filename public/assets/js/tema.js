@@ -10,8 +10,8 @@
     function aplicarTema(tema) {
       var esNocturno = tema === 'nocturno';
       raiz.dataset.tema = esNocturno ? 'nocturno' : 'diurno';
-      boton.textContent = esNocturno ? 'Claro' : 'Oscuro';
-      boton.setAttribute('aria-label', esNocturno ? 'Activar modo diurno' : 'Activar modo nocturno');
+      boton.dataset.tema = esNocturno ? 'nocturno' : 'diurno';
+      boton.setAttribute('aria-label', esNocturno ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
       boton.setAttribute('aria-pressed', esNocturno ? 'true' : 'false');
     }
 

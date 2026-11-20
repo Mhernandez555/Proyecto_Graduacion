@@ -7,17 +7,58 @@
 }
 
 .theme-toggle {
+  display: grid;
+  grid-template-rows: 18px 10px;
+  justify-items: center;
+  gap: 3px;
   flex-shrink: 0;
+  min-width: 82px;
   border: 1px solid #CBD5E1;
-  border-radius: 8px;
-  padding: 8px 12px;
-  min-height: 40px;
+  border-radius: 10px;
+  padding: 5px 8px;
   background: #fff;
   color: #0F172A;
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
   cursor: pointer;
+}
+
+.theme-toggle-icons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.theme-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.theme-toggle-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 9px;
+  line-height: 10px;
+  color: var(--muted);
+}
+
+.theme-toggle[data-tema="diurno"] .theme-icon-sun,
+.theme-toggle[data-tema="diurno"] .theme-toggle-labels span:first-child {
+  color: #D97706;
+  font-weight: 700;
+}
+
+.theme-toggle[data-tema="nocturno"] .theme-icon-moon,
+.theme-toggle[data-tema="nocturno"] .theme-toggle-labels span:last-child {
+  color: #818CF8;
+  font-weight: 700;
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .login-tools {
@@ -86,6 +127,10 @@
   color: #E2E8F0;
 }
 
+:root[data-tema="nocturno"] .theme-toggle-labels {
+  color: #94A3B8;
+}
+
 :root[data-tema="nocturno"] .selector-usuarios-opcion:hover {
   background: #273449;
 }
@@ -108,4 +153,15 @@
 :root[data-tema="nocturno"] .neg,
 :root[data-tema="nocturno"] .stat.bad strong {
   color: #FCA5A5;
+}
+
+@media (max-width: 900px) {
+  .topbar-user {
+    gap: 8px;
+  }
+
+  .theme-toggle {
+    min-width: 76px;
+    padding: 5px 6px;
+  }
 }

@@ -100,8 +100,10 @@
             <span></span><span></span><span></span>
         </button>
         <h1>@ViewData["Title"]</h1>
-        <button type="button" id="tema-toggle" class="theme-toggle" aria-label="Activar modo nocturno" aria-pressed="false">Oscuro</button>
-        <div class="user"><strong>@User.FindFirst("nombre_completo")?.Value</strong><span>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></div>
+        <div class="topbar-user">
+            <div class="user"><strong>@User.FindFirst("nombre_completo")?.Value</strong><span>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></div>
+            <partial name="_TemaToggle" />
+        </div>
     </header>
     <section class="content">
         @if (TempData["Mensaje"] is string mensaje) { <div class="flash ok" role="status">@mensaje</div> }

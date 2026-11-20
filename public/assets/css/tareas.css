@@ -4,3 +4,7 @@
 .field input[readonly]{background:#F1F5F9}
 .dos-col .card{margin-top:0}
 .field textarea{font:inherit}
+.tarea-formularios{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:16px 0}
+.tarea-formularios .card{min-width:0;margin:0}
+.tarea-formularios textarea{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;resize:none;overflow-y:auto}
+@media (max-width:900px){.tarea-formularios{grid-template-columns:1fr}}

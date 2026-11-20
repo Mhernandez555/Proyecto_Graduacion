@@ -26,7 +26,7 @@
     </div>
     <div class="login-body">
         <div class="login-tools">
-            <button type="button" id="tema-toggle" class="theme-toggle" aria-label="Activar modo nocturno" aria-pressed="false">Oscuro</button>
+            <partial name="_TemaToggle" />
         </div>
         <h1>Iniciar sesión</h1>
         @if (TempData["Mensaje"] is string mensaje) { <div class="flash ok" role="status">@mensaje</div> }

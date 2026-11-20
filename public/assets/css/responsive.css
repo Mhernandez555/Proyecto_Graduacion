@@ -29,6 +29,7 @@ img{max-width:100%}
   .topbar h1{flex:1;min-width:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .user span{display:none}
   .user strong{max-width:120px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbar-user{min-width:0}
   .content{padding:16px 14px}
   .card{padding:16px}
   .dos-col{grid-template-columns:1fr}
