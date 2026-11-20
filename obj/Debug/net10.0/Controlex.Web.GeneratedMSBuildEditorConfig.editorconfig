@@ -39,10 +39,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXGF1dGhcTG9naW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/CONTROLEX/app/Views/auth/RecuperarContrasena.cshtml]
-build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXGF1dGhcUmVjdXBlcmFyQ29udHJhc2VuYS5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/CONTROLEX/app/Views/bitacoras/Ingresos.cshtml]
 build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXGJpdGFjb3Jhc1xJbmdyZXNvcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -85,6 +81,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/CONTROLEX/app/Views/proyectos/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXHByb3llY3Rvc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/CONTROLEX/app/Views/Recuperar/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = YXBwXFZpZXdzXFJlY3VwZXJhclxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/CONTROLEX/app/Views/reportes/Rentabilidad.cshtml]

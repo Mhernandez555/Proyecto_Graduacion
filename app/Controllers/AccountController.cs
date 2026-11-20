@@ -47,7 +47,9 @@ public class AccountController(ControlexDbContext contexto, PermisoService permi
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
         await bitacora.MovimientoAsync(usuario.IdUsuario, "SEGURIDAD", "LOGIN", "Inicio de sesión");
-        return RedirectToAction("Index", "Home");
+        return usuario.RequiereCambioContrasena
+            ? RedirectToAction("CambiarContrasena", "Seguridad")
+            : RedirectToAction("Index", "Home");
     }
 
     [Authorize, HttpPost, ValidateAntiForgeryToken]

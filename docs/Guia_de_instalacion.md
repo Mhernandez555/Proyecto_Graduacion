@@ -15,8 +15,9 @@ En SSMS, contra el servidor de WallRed y en este orden:
 3. `database/sql/004_motivo_salida_sesion.sql`.
 4. `database/sql/005_direccion_ip_ipv6.sql`.
 5. `database/sql/006_usuarios_proyecto.sql` (crea los participantes de proyectos y conserva responsables y asignaciones de tareas existentes).
-6. **No** ejecutar `002_datos_prueba_reportes.sql` (son datos ficticios).
-6. Crear el login que usará la aplicación (cambie la clave):
+6. `database/sql/007_recuperacion_contrasena.sql` (procedimientos almacenados para recuperación de contraseña).
+7. **No** ejecutar `002_datos_prueba_reportes.sql` (son datos ficticios).
+8. Crear el login que usará la aplicación (cambie la clave):
    ```sql
    CREATE LOGIN controlex_app WITH PASSWORD = 'UnaClaveLargaYUnica1!', CHECK_POLICY = OFF;
    GO
@@ -25,9 +26,11 @@ En SSMS, contra el servidor de WallRed y en este orden:
    CREATE USER controlex_app FOR LOGIN controlex_app;
    ALTER ROLE db_datareader ADD MEMBER controlex_app;
    ALTER ROLE db_datawriter ADD MEMBER controlex_app;
+   GRANT EXECUTE ON OBJECT::dbo.sp_datos_recuperacion TO controlex_app;
+   GRANT EXECUTE ON OBJECT::dbo.sp_aplicar_contrasena_temporal TO controlex_app;
    ```
    El servidor debe tener activado el modo "SQL Server and Windows Authentication" (y reiniciado el servicio).
-7. Clave del administrador inicial: en el equipo donde está publicada la aplicación,
+9. Clave del administrador inicial: en el equipo donde está publicada la aplicación,
    ```
    C:\controlex\app\Controlex.Web.exe hash "ClaveTemporal1!"
    ```
@@ -46,9 +49,10 @@ Copie la carpeta `C:\controlex\app` al servidor (misma ruta). Debe contener `Con
 
 ## 4. Configuración de producción
 1. En el servidor, copie `config\appsettings.Production.example.json` como `config\appsettings.Production.json`.
-2. Complete la cadena de conexión (servidor, base `CONTROLEX_DB`, usuario `controlex_app` y su clave), la sección `Correo` y la ruta del certificado.
+2. Complete `ConnectionStrings:DefaultConnection` (servidor, base `CONTROLEX_DB`, usuario `controlex_app` y su clave), los valores `Correo:Host`, `Correo:Puerto`, `Correo:Usuario` y `Correo:Remitente`, y la ruta del certificado.
 3. Este archivo no se sube a Git. Si la clave de SQL cambia, se cambia solo ahí.
-4. Si se publica detrás de un proxy inverso, agregue su IP exacta a `Red:ProxiesConfiables` en `appsettings.Production.json` y configure el proxy para enviar `X-Forwarded-For` y `X-Forwarded-Proto`. No agregue IPs de clientes ni rangos no confiables. En la instalación directa con Kestrel, deje la lista vacía.
+4. Configure la clave SMTP como variable de entorno `Correo__Clave` en el servidor; no la guarde en archivos del repositorio. En desarrollo, guárdela con `dotnet user-secrets set "Correo:Clave" "CLAVE_SMTP" --project .\Controlex.Web.csproj`.
+5. Si se publica detrás de un proxy inverso, agregue su IP exacta a `Red:ProxiesConfiables` en `appsettings.Production.json` y configure el proxy para enviar `X-Forwarded-For` y `X-Forwarded-Proto`. No agregue IPs de clientes ni rangos no confiables. En la instalación directa con Kestrel, deje la lista vacía.
 
 ## 5. Certificado HTTPS (red interna)
 En PowerShell como administrador. Use como nombre el que los usuarios escribirán en el navegador (ejemplo `controlex.wallred.local`):

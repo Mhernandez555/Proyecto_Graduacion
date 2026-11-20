@@ -8,8 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace Controlex.Web.Controllers;
 
-public class AuthController(ControlexDbContext contexto, PermisoService permisos, BitacoraService bitacora,
-                            ILogger<AuthController> registrador) : Controller
+public class AuthController(ControlexDbContext contexto, PermisoService permisos, BitacoraService bitacora) : Controller
 {
     [AllowAnonymous, HttpGet]
     public IActionResult Login() =>
@@ -48,7 +47,9 @@ public class AuthController(ControlexDbContext contexto, PermisoService permisos
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
         await bitacora.MovimientoAsync(usuario.IdUsuario, "SEGURIDAD", "LOGIN", "Inicio de sesión");
-        return RedirectToAction("Index", "Dashboard");
+        return usuario.RequiereCambioContrasena
+            ? RedirectToAction("CambiarContrasena", "Seguridad")
+            : RedirectToAction("Index", "Dashboard");
     }
 
     [Authorize, HttpPost, ValidateAntiForgeryToken]
@@ -63,47 +64,6 @@ public class AuthController(ControlexDbContext contexto, PermisoService permisos
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         }
-        return RedirectToAction(nameof(Login));
-    }
-
-    // RF-023: recuperar contraseña
-    [AllowAnonymous, HttpGet]
-    public IActionResult RecuperarContrasena() => View(new RecuperarContrasenaViewModel());
-
-    [AllowAnonymous, HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> RecuperarContrasena(RecuperarContrasenaViewModel vistaRecuperacion, [FromServices] CorreoService servicioCorreo)
-    {
-        if (!ModelState.IsValid) return View(vistaRecuperacion);
-
-        var usuario = await contexto.Usuarios.FirstOrDefaultAsync(usuario =>
-            usuario.NombreUsuario == vistaRecuperacion.NombreUsuario &&
-            usuario.Cedula == vistaRecuperacion.Cedula && usuario.Estado);
-        if (usuario is null)
-        {
-            ModelState.AddModelError("", "Los datos ingresados no coinciden con un usuario activo.");
-            return View(vistaRecuperacion);
-        }
-
-        var temporal = PasswordPolicy.GenerarTemporal();
-        try
-        {
-            await servicioCorreo.EnviarAsync(usuario.Correo, "CONTROLEX: contraseña temporal",
-                $"Hola {usuario.Nombre},\n\nSu contraseña temporal es: {temporal}\n\n" +
-                "Ingrese al sistema con ella y cámbiela cuando se le solicite.\n\nCONTROLEX – WallRed");
-        }
-        catch (Exception ex)
-        {
-            registrador.LogError(ex, "No se pudo enviar el correo de recuperación");
-            ModelState.AddModelError("", "No se pudo enviar el correo. Intente más tarde o comuníquese con soporte.");
-            return View(vistaRecuperacion);
-        }
-
-        usuario.ContrasenaHash = PasswordHasher.Hash(temporal);
-        usuario.RequiereCambioContrasena = true;
-        await contexto.SaveChangesAsync();
-        await bitacora.MovimientoAsync(usuario.IdUsuario, "SEGURIDAD", "RECUPERAR CONTRASEÑA", "Se envió una contraseña temporal al correo registrado");
-
-        TempData["Mensaje"] = "Se envió una contraseña temporal al correo registrado.";
         return RedirectToAction(nameof(Login));
     }
 

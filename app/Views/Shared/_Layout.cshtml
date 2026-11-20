@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0F172A" />
     <title>@ViewData["Title"] – CONTROLEX</title>
+    <script src="~/assets/js/tema.js" asp-append-version="true"></script>
     <link rel="icon" type="image/svg+xml" href="~/assets/images/wallred-logo.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,6 +19,7 @@
     <link rel="stylesheet" href="~/assets/css/proyectos.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/marca.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/responsive.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/tema.css" asp-append-version="true" />
 </head>
 <body class="app">
 <div id="nav-overlay" class="nav-overlay"></div>
@@ -98,6 +100,7 @@
             <span></span><span></span><span></span>
         </button>
         <h1>@ViewData["Title"]</h1>
+        <button type="button" id="tema-toggle" class="theme-toggle" aria-label="Activar modo nocturno" aria-pressed="false">Oscuro</button>
         <div class="user"><strong>@User.FindFirst("nombre_completo")?.Value</strong><span>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></div>
     </header>
     <section class="content">

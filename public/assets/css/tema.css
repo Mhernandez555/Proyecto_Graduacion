@@ -1,0 +1,111 @@
+:root[data-tema="nocturno"] {
+  color-scheme: dark;
+  --bg: #0B1120;
+  --line: #334155;
+  --text: #E2E8F0;
+  --muted: #94A3B8;
+}
+
+.theme-toggle {
+  flex-shrink: 0;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-height: 40px;
+  background: #fff;
+  color: #0F172A;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+:root[data-tema="nocturno"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+:root[data-tema="nocturno"] .topbar,
+:root[data-tema="nocturno"] .card,
+:root[data-tema="nocturno"] .stat,
+:root[data-tema="nocturno"] .login-card,
+:root[data-tema="nocturno"] .selector-usuarios-opciones {
+  background: #111827;
+  color: var(--text);
+}
+
+:root[data-tema="nocturno"] .topbar h1,
+:root[data-tema="nocturno"] .login-card h1,
+:root[data-tema="nocturno"] .brand.dark,
+:root[data-tema="nocturno"] .stat strong,
+:root[data-tema="nocturno"] .section-title,
+:root[data-tema="nocturno"] .manual h2,
+:root[data-tema="nocturno"] .manual h3 {
+  color: #F1F5F9;
+}
+
+:root[data-tema="nocturno"] label,
+:root[data-tema="nocturno"] .saludo,
+:root[data-tema="nocturno"] .stat span,
+:root[data-tema="nocturno"] .ficha dt,
+:root[data-tema="nocturno"] table.grid th {
+  color: #CBD5E1;
+}
+
+:root[data-tema="nocturno"] input,
+:root[data-tema="nocturno"] select,
+:root[data-tema="nocturno"] textarea,
+:root[data-tema="nocturno"] .field input,
+:root[data-tema="nocturno"] .field select,
+:root[data-tema="nocturno"] .field textarea,
+:root[data-tema="nocturno"] .perm-table select {
+  border-color: #475569;
+  background: #0F172A;
+  color: var(--text);
+}
+
+:root[data-tema="nocturno"] .field input[readonly],
+:root[data-tema="nocturno"] table.grid th,
+:root[data-tema="nocturno"] table.grid tfoot th,
+:root[data-tema="nocturno"] .ficha dt {
+  background: #1E293B;
+}
+
+:root[data-tema="nocturno"] .btn:not(.primary),
+:root[data-tema="nocturno"] .menu-toggle,
+:root[data-tema="nocturno"] .theme-toggle,
+:root[data-tema="nocturno"] .selector-usuarios-toggle {
+  border-color: #475569;
+  background: #1E293B;
+  color: #E2E8F0;
+}
+
+:root[data-tema="nocturno"] .selector-usuarios-opcion:hover {
+  background: #273449;
+}
+
+:root[data-tema="nocturno"] .selector-usuarios-chip,
+:root[data-tema="nocturno"] .manual .nota {
+  border-color: #334155;
+  background: #172554;
+  color: #BFDBFE;
+}
+
+:root[data-tema="nocturno"] .content a:not(.btn),
+:root[data-tema="nocturno"] .login-card a,
+:root[data-tema="nocturno"] .link,
+:root[data-tema="nocturno"] .manual a {
+  color: #93C5FD;
+}
+
+:root[data-tema="nocturno"] .field-error,
+:root[data-tema="nocturno"] .neg,
+:root[data-tema="nocturno"] .stat.bad strong {
+  color: #FCA5A5;
+}

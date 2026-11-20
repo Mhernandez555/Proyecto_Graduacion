@@ -6,10 +6,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Iniciar sesión – CONTROLEX</title>
+    <script src="~/assets/js/tema.js" asp-append-version="true"></script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/tema.css" asp-append-version="true" />
 </head>
 <body class="login-page">
 <main class="login-card">
+    <div class="login-tools">
+        <button type="button" id="tema-toggle" class="theme-toggle" aria-label="Activar modo nocturno" aria-pressed="false">Oscuro</button>
+    </div>
     <div class="brand dark"><span class="brand-mark">C</span><span>CONTROLEX</span></div>
     <h1>Iniciar sesión</h1>
     @if (!ViewData.ModelState.IsValid)
@@ -27,7 +32,7 @@
             <button type="submit" class="btn primary">Iniciar sesión</button>
             <button type="reset" class="btn">Cancelar</button>
         </div>
-        <a href="#" class="link">Recuperar contraseña</a>
+        <a asp-controller="Recuperar" asp-action="Index" class="link">¿Olvidó su contraseña?</a>
     </form>
 </main>
 </body>

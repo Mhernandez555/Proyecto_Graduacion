@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0F172A" />
     <title>Recuperar contraseña – CONTROLEX</title>
+    <script src="~/assets/js/tema.js" asp-append-version="true"></script>
     <link rel="icon" type="image/svg+xml" href="~/assets/images/wallred-logo.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,6 +16,7 @@
     <link rel="stylesheet" href="~/assets/css/modulos.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/marca.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/css/responsive.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/css/tema.css" asp-append-version="true" />
 </head>
 <body class="login-page">
 <main class="login-card">
@@ -23,22 +25,25 @@
         <div class="brand-text"><strong>CONTROLEX</strong><small>Inteligencia de negocios · Licitaciones públicas</small></div>
     </div>
     <div class="login-body">
+        <div class="login-tools">
+            <button type="button" id="tema-toggle" class="theme-toggle" aria-label="Activar modo nocturno" aria-pressed="false">Oscuro</button>
+        </div>
         <h1>Recuperar contraseña</h1>
-        <p class="muted">Ingrese sus datos. Si coinciden, le enviaremos una contraseña temporal al correo registrado.</p>
+        <p class="muted">Ingrese su nombre de usuario y número de cédula. Si coinciden, enviaremos una contraseña temporal al correo registrado.</p>
         @if (!ViewData.ModelState.IsValid)
         {
             <div class="alert" role="alert">
                 @foreach (var errorModelo in ViewData.ModelState.SelectMany(estado => estado.Value!.Errors)) { <div>@errorModelo.ErrorMessage</div> }
             </div>
         }
-        <form asp-action="RecuperarContrasena" method="post">
+        <form asp-action="Index" method="post">
             <label>@Html.DisplayNameFor(modelo => modelo.NombreUsuario)
                 <input asp-for="NombreUsuario" autocomplete="username" autofocus /></label>
             <label>@Html.DisplayNameFor(modelo => modelo.Cedula)
-                <input asp-for="Cedula" inputmode="numeric" /></label>
+                <input asp-for="Cedula" inputmode="numeric" autocomplete="off" /></label>
             <div class="actions">
                 <button type="submit" class="btn primary">Recuperar</button>
-                <a asp-action="Login" class="btn">Cancelar</a>
+                <a asp-controller="Auth" asp-action="Login" class="btn">Cancelar</a>
             </div>
         </form>
     </div>

@@ -38,7 +38,7 @@ constructorAplicacion.Configuration
     .AddJsonFile("config/appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"config/appsettings.{constructorAplicacion.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-var cadena = constructorAplicacion.Configuration.GetConnectionString("Controlex");
+var cadena = constructorAplicacion.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(cadena))
     throw new InvalidOperationException(
         "Falta la cadena de conexión. Copie config/appsettings.Development.example.json a " +
@@ -65,7 +65,8 @@ constructorAplicacion.Services.AddDbContext<ControlexDbContext>(opciones => opci
 constructorAplicacion.Services.AddScoped<PermisoService>();
 constructorAplicacion.Services.AddScoped<BitacoraService>();
 constructorAplicacion.Services.AddScoped<ReporteService>();
-constructorAplicacion.Services.AddSingleton<CorreoService>();
+constructorAplicacion.Services.AddScoped<CorreoService>();
+constructorAplicacion.Services.AddScoped<RecuperacionService>();
 // Hora de salida de las sesiones cerradas por inactividad
 constructorAplicacion.Services.AddSingleton<ActividadSesionService>();
 constructorAplicacion.Services.AddHostedService<CierreSesionesService>();
