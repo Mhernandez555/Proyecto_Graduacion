@@ -4,14 +4,16 @@ Registro de cambios funcionales y de base de datos de CONTROLEX.
 
 ## 2026-11-20 — Tema nocturno y mejoras de tareas
 
-**Módulos:** Interfaz general y Tareas
+**Módulos:** Interfaz general, Tareas e Información
 **Estado:** cambio implementado; no requiere cambios de base de datos.
 
 ### Cambios en la aplicación
 
 - Se reemplaza el control textual del tema por un selector compacto con iconos de sol y luna, etiquetas «Claro» y «Oscuro», ubicado junto al usuario autenticado.
+- El header con el selector de tema permanece visible al desplazarse por las pantallas.
 - La vista de detalle de tareas presenta en paralelo los formularios para actualizar estado/comentarios y registrar tiempo, apilándolos en pantallas estrechas.
 - Los campos de texto de esos formularios conservan un tamaño fijo y ya no se pueden redimensionar.
+- La ficha de «Acerca de» usa el ancho disponible para evitar espacio vacío y reducir saltos de línea en los datos de la empresa.
 - Se ocultan los registros informativos de comandos SQL de EF Core en la terminal; advertencias y errores siguen disponibles.
 
 ## 2026-11-16 — Participantes de proyectos y asignación de tareas
